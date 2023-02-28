@@ -6,6 +6,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import pl.edu.agh.plugins.*
+import pl.edu.agh.plugins.DatabaseConnector.initDB
 import pl.edu.agh.simple.SimpleHttpRouting
 
 fun main(args: Array<String>): Unit =
@@ -25,6 +26,7 @@ fun Application.module() {
         allowHeader(HttpHeaders.Authorization)
         anyHost()
     }
+    initDB()
     configureSecurity()
     SimpleHttpRouting()
 }
