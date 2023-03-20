@@ -4,6 +4,8 @@ val logback_version: String by project
 val exposed_version: String by project
 val h2_version: String by project
 val postgres_version: String by project
+val koin_version: String by project
+val koin_ktor: String by project
 
 plugins {
     kotlin("jvm") version "1.8.10"
@@ -40,6 +42,12 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
+
+    implementation("io.insert-koin:koin-core:$koin_version")
+    testImplementation("io.insert-koin:koin-test-junit5:$koin_version")
+
+    implementation("io.insert-koin:koin-ktor:$koin_ktor")
+    implementation("io.insert-koin:koin-logger-slf4j:$koin_ktor")
 
 
     implementation("com.zaxxer:HikariCP:5.0.1")

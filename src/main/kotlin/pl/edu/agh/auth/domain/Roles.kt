@@ -15,5 +15,12 @@ sealed class Roles(val id: Int, val roleName: String) {
                 2 -> Admin.some()
                 else -> throw IllegalArgumentException("Unknown role id: $id")
             }
+
+        fun fromString(value: String?) =
+            when (value) {
+                "USER" -> User.some()
+                "ADMIN" -> Admin.some()
+                else -> throw IllegalArgumentException("Unknown role name: $value")
+            }
     }
 }

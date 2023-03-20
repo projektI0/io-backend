@@ -1,0 +1,47 @@
+package pl.edu.agh.auth.route
+
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
+import org.koin.ktor.ext.inject
+import pl.edu.agh.auth.domain.LoginUserBasicData
+import pl.edu.agh.auth.domain.LoginUserDTO
+import pl.edu.agh.auth.domain.LoginUserData
+import pl.edu.agh.auth.service.UserService
+import pl.edu.agh.logging.LoggerDelegate
+import pl.edu.agh.plugins.Utils.handleOutput
+import pl.edu.agh.plugins.Utils.responsePair
+
+object AuthRoutes {
+    private val logger by LoggerDelegate()
+
+    fun Application.authRoutes() {
+        val userService by inject<UserService>()
+
+        routing {
+            post("/register") {
+                handleOutput(call) {
+                    val userData = call.receive<LoginUserBasicData>()
+                    val signedUserResponse = userService.signUpNewUser(userData)
+                    signedUserResponse.mapLeft {
+                        logger.warn("User registration failed: $it")
+                        Pair(HttpStatusCode.BadRequest, "Cound not register user")
+                    }.responsePair(LoginUserData.serializer())
+                }
+            }
+
+            post("/login") {
+                handleOutput(call) {
+                    val userData = call.receive<LoginUserBasicData>()
+                    val signedUserResponse = userService.signInUser(userData)
+                    signedUserResponse.mapLeft {
+                        logger.warn("User login failed: $it")
+                        Pair(HttpStatusCode.BadRequest, "Cound not login user")
+                    }.responsePair(LoginUserData.serializer())
+                }
+            }
+        }
+    }
+
+}
