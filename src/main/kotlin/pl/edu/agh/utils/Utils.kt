@@ -1,4 +1,4 @@
-package pl.edu.agh.plugins
+package pl.edu.agh.utils
 
 import arrow.core.Either
 import arrow.core.Nel
@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
 
 object Utils {
     @JvmName("responsePairList")
@@ -16,11 +15,17 @@ object Utils {
         this.fold({ (HttpStatusCode.BadRequest to it) }, { (HttpStatusCode.OK to it) })
 
     @JvmName("responsePairMapList")
-    fun <T : Either<String, Map<K, List<V>>>, K : Any, V: Any> T.responsePair(serializer: KSerializer<K>, serializer2: KSerializer<V>) =
+    fun <T : Either<String, Map<K, List<V>>>, K : Any, V : Any> T.responsePair(
+        serializer: KSerializer<K>,
+        serializer2: KSerializer<V>
+    ) =
         this.fold({ (HttpStatusCode.BadRequest to it) }, { (HttpStatusCode.OK to it) })
 
     @JvmName("responsePairMap")
-    fun <T : Either<String, Map<K, V>>, K : Any, V: Any> T.responsePair(serializer: KSerializer<K>, serializer2: KSerializer<V>) =
+    fun <T : Either<String, Map<K, V>>, K : Any, V : Any> T.responsePair(
+        serializer: KSerializer<K>,
+        serializer2: KSerializer<V>
+    ) =
         this.fold({ (HttpStatusCode.BadRequest to it) }, { (HttpStatusCode.OK to it) })
 
     @JvmName("responsePairAny")
@@ -38,10 +43,6 @@ object Utils {
 
     fun Parameters.getOption(id: String): Option<String> {
         return Option.fromNullable(this[id])
-    }
-
-    fun Option<String>.toInt(): Option<Int> {
-        return this.flatMap { Option.fromNullable(it.toIntOrNull()) }
     }
 
     fun <T> List<T>.toNel(): Option<Nel<T>> {
