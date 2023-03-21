@@ -1,4 +1,4 @@
-package pl.edu.agh.plugins
+package pl.edu.agh.utils
 
 import arrow.core.Either
 import arrow.core.continuations.Effect
@@ -14,7 +14,6 @@ import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.slf4j.LoggerFactory
-import pl.edu.agh.simple.SimpleTable
 
 object DatabaseConnector {
 
@@ -24,7 +23,6 @@ object DatabaseConnector {
         val dbConfig = HikariConfig(configPath)
         val dataSource = HikariDataSource(dbConfig)
         Database.connect(dataSource)
-        SimpleTable.create()
         LoggerFactory.getLogger(Application::class.simpleName).info("Initialized Database")
     }
 

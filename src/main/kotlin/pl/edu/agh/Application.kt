@@ -5,9 +5,8 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
-import pl.edu.agh.plugins.*
-import pl.edu.agh.plugins.DatabaseConnector.initDB
-import pl.edu.agh.simple.SimpleHttpRouting
+import pl.edu.agh.utils.*
+import pl.edu.agh.utils.DatabaseConnector.initDB
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)
@@ -27,6 +26,4 @@ fun Application.module() {
         anyHost()
     }
     initDB()
-    configureSecurity()
-    SimpleHttpRouting()
 }

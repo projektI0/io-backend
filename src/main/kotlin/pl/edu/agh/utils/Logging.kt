@@ -1,4 +1,4 @@
-package pl.edu.agh.logging
+package pl.edu.agh.utils
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
