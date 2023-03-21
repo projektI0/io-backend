@@ -12,7 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 import pl.edu.agh.auth.domain.Roles
-import pl.edu.agh.logging.getLogger
+import pl.edu.agh.utils.getLogger
 
 fun Application.configureSecurity() {
     val jwtConfig by inject<JWTConfig>()
@@ -44,8 +44,7 @@ fun Application.getJWTConfig(): JWTConfig {
         this.jwtAudience(),
         this.jwtRealm(),
         this.jwtSecret(),
-        this.jwtDomain(),
-        this.getConfigProperty("jwt.expireSecond").toLong()
+        this.jwtDomain()
     )
 }
 
@@ -60,8 +59,7 @@ data class JWTConfig(
     val audience: String,
     val realm: String,
     val secret: String,
-    val domain: String,
-    val expireSecond: Long
+    val domain: String
 )
 
 private fun Application.jwtAudience(): String {
@@ -115,7 +113,7 @@ fun AuthenticationConfig.jwt(
                 )
             })
         }
-        challenge { defaultScheme, realm ->
+        challenge { _, _ ->
             call.respond(
                 io.ktor.http.HttpStatusCode.Unauthorized,
                 mapOf("error" to "Unauthorized")

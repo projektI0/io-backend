@@ -3,8 +3,13 @@ package pl.edu.agh.auth.service
 import arrow.core.Either
 import arrow.core.continuations.either
 import arrow.core.right
+import org.jetbrains.exposed.sql.batchInsert
 import pl.edu.agh.auth.dao.UserDao
-import pl.edu.agh.auth.domain.*
+import pl.edu.agh.auth.domain.LoginUserBasicData
+import pl.edu.agh.auth.domain.LoginUserDTO
+import pl.edu.agh.auth.domain.LoginUserData
+import pl.edu.agh.auth.domain.Roles
+import pl.edu.agh.auth.table.UserRolesTable
 
 enum class RegisterException {
     EMAIL_ALREADY_EXISTS,
@@ -41,6 +46,11 @@ class UserServiceImpl(private val tokenCreationService: TokenCreationService) : 
 
             val newId = UserDao.insertNewUser(loginUserBasicData)
             val basicRoles = listOf(Roles.User)
+
+            UserRolesTable.batchInsert(basicRoles) { role ->
+                this[UserRolesTable.roleId] = role.id
+                this[UserRolesTable.userId] = newId
+            }
 
             LoginUserData(
                 loginUserDTO = LoginUserDTO(id = newId, email = loginUserBasicData.email),

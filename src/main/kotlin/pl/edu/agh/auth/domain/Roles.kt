@@ -6,7 +6,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class Roles(val id: Int, val roleName: String) {
+    @Serializable
     object User : Roles(1, "USER")
+    @Serializable
     object Admin : Roles(2, "ADMIN")
     companion object {
         fun fromId(id: Int?): Option<Roles> =
