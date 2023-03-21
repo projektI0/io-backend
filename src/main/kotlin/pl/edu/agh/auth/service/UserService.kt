@@ -45,7 +45,7 @@ class UserServiceImpl(private val tokenCreationService: TokenCreationService) : 
                 .bind()
 
             val newId = UserDao.insertNewUser(loginUserBasicData)
-            val basicRoles = listOf(Roles.User)
+            val basicRoles = listOf(Roles.USER)
 
             UserRolesTable.batchInsert(basicRoles) { role ->
                 this[UserRolesTable.roleId] = role.id

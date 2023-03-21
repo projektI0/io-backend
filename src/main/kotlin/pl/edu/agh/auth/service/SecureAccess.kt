@@ -2,7 +2,6 @@ package pl.edu.agh.auth.service
 
 import arrow.core.Either
 import arrow.core.continuations.either
-import arrow.core.flattenOption
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.server.application.*
@@ -25,8 +24,8 @@ fun Application.configureSecurity() {
             )
         }
 
-        jwtPA(Roles.User)
-        jwtPA(Roles.Admin)
+        jwtPA(Roles.USER)
+        jwtPA(Roles.ADMIN)
     }
 }
 
@@ -79,8 +78,8 @@ private fun Application.jwtDomain(): String {
 }
 
 private fun JWTCredential.validateRole(role: Roles): Either<String, JWTCredential> =
-    Either.conditionally(payload.getClaim("roles").asList(String::class.java).map { Roles.fromString(it) }
-        .flattenOption().contains(role), { "Invalid role" }, { this })
+    Either.conditionally(payload.getClaim("roles").asList(String::class.java).map { Roles.valueOf(it) }
+        .contains(role), { "Invalid role" }, { this })
 
 
 fun AuthenticationConfig.jwt(

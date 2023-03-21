@@ -1,7 +1,6 @@
 package pl.edu.agh.auth.dao
 
 import arrow.core.Option
-import arrow.core.flattenOption
 import arrow.core.singleOrNone
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.and
@@ -44,5 +43,4 @@ object UserDao {
             })
             .select { UserRolesTable.userId eq userId }
             .map { Roles.fromId(it[RoleTable.roleId]) }
-            .flattenOption()
 }
