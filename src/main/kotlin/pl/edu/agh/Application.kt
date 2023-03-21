@@ -30,13 +30,9 @@ fun Application.module() {
         anyHost()
     }
     initDB()
-
     install(Koin) {
         modules(getKoinAuthModule())
     }
-
     configureSecurity()
     configureAuthRoutes()
-
-
 }

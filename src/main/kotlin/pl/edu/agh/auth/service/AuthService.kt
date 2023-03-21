@@ -21,13 +21,13 @@ enum class LoginException {
     WRONG_PASSWORD
 }
 
-interface UserService {
+interface AuthService {
     suspend fun signUpNewUser(loginUserBasicData: LoginUserBasicData): Either<RegisterException, LoginUserData>
     suspend fun signInUser(loginUserBasicData: LoginUserBasicData): Either<LoginException, LoginUserData>
 }
 
 
-class UserServiceImpl(private val tokenCreationService: TokenCreationService) : UserService {
+class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : AuthService {
 
     override suspend fun signUpNewUser(loginUserBasicData: LoginUserBasicData): Either<RegisterException, LoginUserData> =
         either {

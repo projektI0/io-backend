@@ -19,8 +19,7 @@ fun Application.configureSecurity() {
     install(Authentication) {
         fun jwtPA(role: Roles) = run {
             jwt(
-                role,
-                jwtConfig
+                role, jwtConfig
             )
         }
 
@@ -30,8 +29,7 @@ fun Application.configureSecurity() {
 }
 
 fun Route.authenticate(
-    vararg roles: Roles,
-    build: Route.() -> Unit
+    vararg roles: Roles, build: Route.() -> Unit
 ): Route {
     return authenticate(*roles.map { it.roleName }.toTypedArray()) {
         build()
@@ -40,25 +38,17 @@ fun Route.authenticate(
 
 fun Application.getJWTConfig(): JWTConfig {
     return JWTConfig(
-        this.jwtAudience(),
-        this.jwtRealm(),
-        this.jwtSecret(),
-        this.jwtDomain()
+        this.jwtAudience(), this.jwtRealm(), this.jwtSecret(), this.jwtDomain()
     )
 }
 
 private fun Application.getConfigProperty(path: String): String {
-    return this.environment.config
-        .property(path)
-        .getString()
+    return this.environment.config.property(path).getString()
 }
 
 
 data class JWTConfig(
-    val audience: String,
-    val realm: String,
-    val secret: String,
-    val domain: String
+    val audience: String, val realm: String, val secret: String, val domain: String
 )
 
 private fun Application.jwtAudience(): String {
@@ -78,8 +68,15 @@ private fun Application.jwtDomain(): String {
 }
 
 private fun JWTCredential.validateRole(role: Roles): Either<String, JWTCredential> =
-    Either.conditionally(payload.getClaim("roles").asList(String::class.java).map { Roles.valueOf(it) }
-        .contains(role), { "Invalid role" }, { this })
+    Either.conditionally(
+        payload
+            .getClaim("roles")
+            .asList(String::class.java)
+            .map { Roles.valueOf(it) }
+            .contains(role),
+        ifFalse = { "Invalid role" },
+        ifTrue = { this }
+    )
 
 
 fun AuthenticationConfig.jwt(
@@ -101,21 +98,17 @@ fun AuthenticationConfig.jwt(
                 credential
             }
 
-            credentialEither.fold({
-                getLogger(AuthenticationConfig::class.java).warn(
-                    it
-                )
-                null
-            }, {
-                JWTPrincipal(
-                    credential.payload
-                )
-            })
+            credentialEither.fold(
+                ifLeft = {
+                    getLogger(AuthenticationConfig::class.java).warn(it)
+                    null
+                },
+                ifRight = { JWTPrincipal(credential.payload) }
+            )
         }
         challenge { _, _ ->
             call.respond(
-                io.ktor.http.HttpStatusCode.Unauthorized,
-                mapOf("error" to "Unauthorized")
+                io.ktor.http.HttpStatusCode.Unauthorized, mapOf("error" to "Unauthorized")
             )
         }
     }
