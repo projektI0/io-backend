@@ -24,9 +24,7 @@ object AuthRoutes {
                 handleOutput(call) {
                     Transactor.dbQuery {
                         val userData = call.receive<LoginUserBasicData>()
-
                         val signedUserResponse = authService.signUpNewUser(userData)
-
                         signedUserResponse.mapLeft {
                             logger.warn("User registration failed: $it")
                             Pair(HttpStatusCode.BadRequest, "Could not register user")

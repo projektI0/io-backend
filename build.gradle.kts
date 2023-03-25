@@ -60,4 +60,5 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 
     implementation("io.arrow-kt:arrow-core:1.1.2")
+    testImplementation("io.ktor:ktor-server-test-host-jvm:2.2.3")
 }

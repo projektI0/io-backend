@@ -64,7 +64,7 @@ class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : 
             LoginUserData(
                 loginUserDTO = LoginUserDTO(id = newId, email = loginUserBasicData.email),
                 roles = basicRoles,
-                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, basicRoles)
+                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, basicRoles, newId)
             ).right().bind()
         }
 
@@ -81,7 +81,7 @@ class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : 
             LoginUserData(
                 loginUserDTO = user,
                 roles = userRoles,
-                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, userRoles)
+                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, userRoles, user.id)
             ).right().bind()
         }
 }

@@ -6,8 +6,8 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ColumnType
+import org.jetbrains.exposed.sql.IntegerColumnType
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.vendors.currentDialect
 
 @Serializable(with = GenericIntIdSerializer::class)
 abstract class GenericIntId<T> : Comparable<GenericIntId<T>> {
@@ -32,12 +32,17 @@ abstract class GenericIntIdSerializer<T : GenericIntId<T>>(private val factory: 
 }
 
 class GenericIntIdColumnType<T : GenericIntId<T>>(private val factory: GenericIntIdFactory<T>) : ColumnType() {
-    override fun sqlType(): String = currentDialect.dataTypeProvider.integerType()
-    override fun valueFromDB(value: Any): T = when (value) {
-        is Int -> factory.create(value)
-        is Number -> factory.create(value.toInt())
-        is String -> factory.create(value.toInt())
-        else -> error("Unexpected value of type Int: $value of ${value::class.qualifiedName}")
+    override var nullable: Boolean = false
+
+    override fun sqlType(): String = IntegerColumnType().sqlType()
+
+    override fun valueFromDB(value: Any): T {
+        return when (value) {
+            is Int -> factory.create(value)
+            is Number -> factory.create(value.toInt())
+            is String -> factory.create(value.toInt())
+            else -> error("Unexpected value of type Int: $value of ${value::class.qualifiedName}")
+        }
     }
 
     override fun valueToDB(value: Any?): Any? {

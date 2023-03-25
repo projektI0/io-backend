@@ -14,7 +14,7 @@ import pl.edu.agh.utils.genericIntId
 @Serializable(with = ShoppingListIdSerializer::class)
 data class ShoppingListId(override val id: Int) : GenericIntId<ShoppingListId>()
 
-private object ShoppingListIdFactory : GenericIntIdFactory<ShoppingListId>() {
+object ShoppingListIdFactory : GenericIntIdFactory<ShoppingListId>() {
     override fun create(id: Int): ShoppingListId = ShoppingListId(id)
 }
 
