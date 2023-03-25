@@ -112,6 +112,11 @@ fun AuthenticationConfig.jwt(name: Roles, jwtConfig: JWTConfig) {
     }
 }
 
+suspend fun getLoggedUser(call: ApplicationCall): Triple<String, List<Roles>, LoginUserId> {
+    return getLoggedUser(call) { name, roles, userId -> Triple(name, roles, userId) }
+}
+
+
 suspend fun <T> getLoggedUser(
     call: ApplicationCall,
     build: suspend (String, List<Roles>, LoginUserId) -> T

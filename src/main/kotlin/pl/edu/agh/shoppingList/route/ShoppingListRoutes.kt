@@ -1,21 +1,30 @@
 package pl.edu.agh.shoppingList.route
 
+import arrow.core.continuations.Effect
+import arrow.core.continuations.either
 import arrow.core.right
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import org.koin.ktor.ext.inject
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.service.authenticate
 import pl.edu.agh.auth.service.getLoggedUser
+import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.shoppingList.domain.ShoppingList
 import pl.edu.agh.shoppingList.domain.ShoppingListId
+import pl.edu.agh.shoppingList.domain.ShoppingListProduct
+import pl.edu.agh.shoppingList.domain.ShoppingListView
 import pl.edu.agh.shoppingList.service.ShoppingListService
+import pl.edu.agh.shoppingList.utils.DomainException
 import pl.edu.agh.utils.LoggerDelegate
-import pl.edu.agh.utils.Utils
-import pl.edu.agh.utils.Utils.getOption
+import pl.edu.agh.utils.Utils.getBody
+import pl.edu.agh.utils.Utils.getParam
+import pl.edu.agh.utils.Utils.handleOutput
 import pl.edu.agh.utils.Utils.responsePair
+import pl.edu.agh.utils.Utils.toResponsePairLogging
 
 object ShoppingListRoutes {
     private val logger by LoggerDelegate()
@@ -23,110 +32,122 @@ object ShoppingListRoutes {
     fun Application.configureShoppingListRoutes() {
         val shoppingListService by inject<ShoppingListService>()
 
-        routing() {
+        routing {
             authenticate(Roles.USER) {
                 route("/shopping-lists") {
                     get("/my") {
-                        Utils.handleOutput(call) {
-                            getLoggedUser(call) { _, _, userId ->
-                                shoppingListService.getAllShoppingListsByUserId(userId)
-                                    .right()
-                                    .responsePair(ShoppingList.serializer())
-                            }
+                        handleOutput(call) {
+                            either<Pair<HttpStatusCode, String>, List<ShoppingList>> {
+                                val (_, _, loginUserId) = getLoggedUser(call)
+                                shoppingListService.getAllShoppingListsByUserId(loginUserId).right().bind()
+                            }.responsePair(ShoppingList.serializer())
                         }
                     }
                     get("/{id}") {
-                        val id = call.parameters.getOption("id").map { ShoppingListId(it.toInt()) }
+                        handleOutput(call) {
+                            either {
+                                val id = getParam("id") { ShoppingListId(it) }.bind()
+                                val (_, _, loginUserId) = getLoggedUser(call)
 
-                        Utils.handleOutput(call) {
-                            id.fold(
-                                ifEmpty = { Pair(HttpStatusCode.BadRequest, "Invalid id") },
-                                ifSome = { id ->
-                                    shoppingListService.getShoppingList(id)
-                                        .toEither()
-                                        .mapLeft {
-                                            logger.warn(it.message)
-                                            Pair(HttpStatusCode.BadRequest, "Could not get shopping list $id")
-                                        }
-                                        .responsePair(ShoppingList.serializer())
-                                }
-                            )
+                                shoppingListService.getShoppingList(loginUserId, id).toResponsePairLogging().bind()
+                            }.responsePair(ShoppingList.serializer())
                         }
                     }
                     post("/") {
-                        val shoppingListName = call.receive<String>()
+                        handleOutput(call) {
+                            either {
+                                val shoppingListName = getBody<String>(call).bind()
+                                val (_, _, loginUserId) = getLoggedUser(call)
 
-                        Utils.handleOutput(call) {
-                            getLoggedUser(call) { _, _, userId ->
                                 shoppingListService
-                                    .createShoppingList(userId, shoppingListName)
-                                    .toEither()
-                                    .mapLeft {
-                                        logger.warn(it.message)
-                                        Pair(
-                                            HttpStatusCode.BadRequest,
-                                            "Could not create shopping list for user: $userId with name: $shoppingListName"
-                                        )
-                                    }
-                                    .responsePair(ShoppingList.serializer())
-                            }
+                                    .createShoppingList(loginUserId, shoppingListName)
+                                    .toResponsePairLogging()
+                                    .bind()
+                            }.responsePair(ShoppingList.serializer())
                         }
                     }
                     put("/{id}") {
-                        val newShoppingListName = call.receive<String>()
-                        val shoppingListId = call.parameters.getOption("id").map { ShoppingListId(it.toInt()) }
+                        handleOutput(call) {
+                            either {
+                                val newShoppingListName = getBody<String>(call).bind()
+                                val shoppingListId = getParam("id") { ShoppingListId(it) }.bind()
+                                val (_, _, loginUserId) = getLoggedUser(call)
 
-                        Utils.handleOutput(call) {
-                            shoppingListId.fold(
-                                ifEmpty = { Pair(HttpStatusCode.BadRequest, "Invalid id") },
-                                ifSome = { shoppingListId ->
-                                    getLoggedUser(call) { _, _, userId ->
-                                        shoppingListService.updateShoppingList(
-                                            userId,
-                                            shoppingListId,
-                                            newShoppingListName
-                                        )
-                                            .toEither()
-                                            .mapLeft {
-                                                logger.warn(it.message)
-                                                Pair(
-                                                    HttpStatusCode.BadRequest,
-                                                    "List not found"
-                                                )
-                                            }
-                                            .responsePair(ShoppingList.serializer())
-                                    }
-                                }
-                            )
+                                shoppingListService.updateShoppingList(
+                                    loginUserId, shoppingListId, newShoppingListName
+                                ).toResponsePairLogging().bind()
+                            }.responsePair(ShoppingList.serializer())
                         }
                     }
                     delete("/{id}") {
-                        val shoppingListId = call.parameters.getOption("id").map { ShoppingListId(it.toInt()) }
+                        handleOutput(call) {
+                            either {
+                                val shoppingListId = getParam("id") { ShoppingListId(it) }.bind()
+                                val (_, _, loginUserId) = getLoggedUser(call)
 
-                        Utils.handleOutput(call) {
-                            shoppingListId.fold(
-                                ifEmpty = { Pair(HttpStatusCode.BadRequest, "Invalid id") },
-                                ifSome = { shoppingListId ->
-                                    getLoggedUser(call) { _, _, userId ->
-                                        shoppingListService.deleteShoppingList(userId, shoppingListId).toEither()
-                                            .mapLeft {
-                                                logger.warn(it.message)
-                                                Pair(
-                                                    HttpStatusCode.BadRequest,
-                                                    "Could not delete shopping list $shoppingListId"
+                                shoppingListService.deleteShoppingList(loginUserId, shoppingListId)
+                                    .toResponsePairLogging()
+                                    .bind()
+                            }.responsePair(ShoppingList.serializer())
+                        }
+                    }
+                    get("/view") {
+                        handleOutput(call) {
+                            either {
+                                val shoppingListId = getParam("id") { ShoppingListId(it) }.bind()
+                                val (_, _, loginUserId) = getLoggedUser(call)
 
-                                                )
-                                            }
-                                            .responsePair(ShoppingList.serializer())
-                                    }
-                                }
-                            )
+                                shoppingListService.getShoppingListView(loginUserId, shoppingListId)
+                                    .toResponsePairLogging()
+                                    .bind()
+                            }.responsePair(ShoppingListView.serializer())
+                        }
+                    }
+                    route("/{listId}/products") {
+                        post("/") {
+                            handleOutput(call) {
+                                either {
+                                    val shoppingListId = getParam("listId") { ShoppingListId(it.toInt()) }
+                                    val shoppingListProduct = getBody<ShoppingListProduct>(call).bind()
+                                    val (_, _, loginUserId) = getLoggedUser(call)
+
+                                    shoppingListService.addProductToList(
+                                        loginUserId, shoppingListProduct
+                                    ).toResponsePairLogging().bind()
+                                }.responsePair()
+                            }
+                        }
+                        put("/{id}") {
+                            handleOutput(call) {
+                                either {
+                                    val shoppingListId = getParam("listId") { ShoppingListId(it) }.bind()
+                                    val shoppingListProductId = getParam("id") { ProductId(it) }.bind()
+                                    val shoppingListProduct = getBody<ShoppingListProduct>(call).bind()
+                                    val (_, _, loginUserId) = getLoggedUser(call)
+
+                                    shoppingListService.updateProductQuantity(
+                                        loginUserId, shoppingListProduct
+                                    ).toResponsePairLogging().bind()
+                                }.responsePair()
+                            }
+                        }
+                        delete("/{id}") {
+                            handleOutput(call) {
+                                either {
+                                    val shoppingListId =
+                                        getParam("listId") { value: Int -> ShoppingListId(value) }.bind()
+                                    val productId = getParam("id") { value: Int -> ProductId(value) }.bind()
+                                    val (_, _, userId) = getLoggedUser(call)
+
+                                    shoppingListService.removeProductFromList(
+                                        userId, shoppingListId, productId
+                                    ).toResponsePairLogging().bind()
+                                }.responsePair()
+                            }
                         }
                     }
                 }
             }
         }
     }
-
-
 }
