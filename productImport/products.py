@@ -1,0 +1,1 @@
+products = ['egg', 'bread', 'fish', 'chicken', 'tofu']
