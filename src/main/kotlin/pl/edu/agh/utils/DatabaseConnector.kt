@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory
 
 object DatabaseConnector {
 
-    fun Application.initDB() {
+    fun initDB() {
         val configPath = "/dbresource.properties"
         val dbConfig = HikariConfig(configPath)
         val dataSource = HikariDataSource(dbConfig)
@@ -28,23 +28,25 @@ object DatabaseConnector {
 }
 
 object Transactor {
+    val logger by LoggerDelegate()
+
     suspend fun <T> dbQuery(block: suspend Transaction.() -> T): T =
         newSuspendedTransaction(Dispatchers.IO) { block(this) }
 
-    suspend fun <L, R> dbQueryEffect(block: suspend Transaction.() -> Either<L, R>, empty: L): Effect<L, R> =
+    suspend fun <L, R> dbQueryEffect(empty: L, block: suspend Transaction.() -> Either<L, R>): Effect<L, R> =
         effect {
             newSuspendedTransaction(Dispatchers.IO) {
                 val caughtEither =
                     Either
                         .catch { block(this) }
                         .tapLeft {
-                            println("Rollback, unknown error (caught), ${it.message}")
+                            logger.error("Rollback, unknown error (caught), ${it.message}", it)
                             rollback()
                         }
                         .mapLeft { empty }
                         .tap {
                             it.tapLeft {
-                                println("Rollback, user error $it")
+                                logger.error("Rollback, user error $it")
                                 rollback()
                             }
                         }

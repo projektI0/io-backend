@@ -19,7 +19,7 @@ private object LoginUserIdFactory : GenericIntIdFactory<LoginUserId>() {
 }
 
 @Serializer(forClass = LoginUserId::class)
-private object LoginUserIdSerializer : GenericIntIdSerializer<LoginUserId>(LoginUserIdFactory) {
+object LoginUserIdSerializer : GenericIntIdSerializer<LoginUserId>(LoginUserIdFactory) {
     override fun deserialize(decoder: Decoder): LoginUserId = super.deserialize(decoder)
     override fun serialize(encoder: Encoder, value: LoginUserId) = super.serialize(encoder, value)
 }

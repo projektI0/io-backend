@@ -1,13 +1,24 @@
 package pl.edu.agh.product.table
 
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.Table
 import pl.edu.agh.product.domain.ProductId
+import pl.edu.agh.product.domain.ProductView
 import pl.edu.agh.product.domain.productId
 
-object ProductTable : IdTable<ProductId>("PRODUCT") {
-    override val id: Column<EntityID<ProductId>> = productId("ID").autoIncrement().entityId()
+object ProductTable : Table("PRODUCT") {
+    val id: Column<ProductId> = productId("ID").autoIncrement()
     val name: Column<String> = varchar("NAME", 255)
     val description: Column<String> = varchar("DESCRIPTION", 255)
+
+    fun toDomainView(it: ResultRow): ProductView {
+        return ProductView(
+            id = it[id],
+            name = it[name],
+            description = it[description],
+            tags = emptyList()
+        )
+    }
+
 }

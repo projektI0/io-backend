@@ -9,11 +9,12 @@ import org.koin.ktor.plugin.Koin
 import pl.edu.agh.auth.AuthModule.getKoinAuthModule
 import pl.edu.agh.auth.route.AuthRoutes.configureAuthRoutes
 import pl.edu.agh.auth.service.configureSecurity
+import pl.edu.agh.shoppingList.ShoppingListModule.getKoinShoppingListModule
+import pl.edu.agh.shoppingList.route.ShoppingListRoutes.configureShoppingListRoutes
 import pl.edu.agh.utils.*
 import pl.edu.agh.utils.DatabaseConnector.initDB
 
-fun main(args: Array<String>): Unit =
-    io.ktor.server.netty.EngineMain.main(args)
+fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
@@ -31,8 +32,9 @@ fun Application.module() {
     }
     initDB()
     install(Koin) {
-        modules(getKoinAuthModule())
+        modules(getKoinAuthModule(), getKoinShoppingListModule())
     }
     configureSecurity()
     configureAuthRoutes()
+    configureShoppingListRoutes()
 }

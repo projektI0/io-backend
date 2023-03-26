@@ -11,10 +11,7 @@ import pl.edu.agh.auth.domain.LoginUserDTO
 import pl.edu.agh.auth.domain.LoginUserData
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.table.UserRolesTable
-
-open class DomainException(
-    val httpStatusCode: HttpStatusCode, val userMessage: String, val internalMessage: String
-)
+import pl.edu.agh.utils.DomainException
 
 sealed class RegisterException(userMessage: String, internalMessage: String) : DomainException(
     HttpStatusCode.BadRequest, userMessage, internalMessage
@@ -64,7 +61,7 @@ class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : 
             LoginUserData(
                 loginUserDTO = LoginUserDTO(id = newId, email = loginUserBasicData.email),
                 roles = basicRoles,
-                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, basicRoles)
+                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, basicRoles, newId)
             ).right().bind()
         }
 
@@ -81,7 +78,7 @@ class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : 
             LoginUserData(
                 loginUserDTO = user,
                 roles = userRoles,
-                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, userRoles)
+                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, userRoles, user.id)
             ).right().bind()
         }
 }

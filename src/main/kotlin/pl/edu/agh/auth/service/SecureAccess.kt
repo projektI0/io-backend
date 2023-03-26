@@ -2,6 +2,8 @@ package pl.edu.agh.auth.service
 
 import arrow.core.Either
 import arrow.core.continuations.either
+import arrow.core.continuations.option
+import arrow.core.toOption
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.server.application.*
@@ -10,6 +12,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.utils.getLogger
 
@@ -83,6 +86,7 @@ fun AuthenticationConfig.jwt(name: Roles, jwtConfig: JWTConfig) {
                 .withIssuer(jwtConfig.domain)
                 .withClaimPresence("name")
                 .withClaimPresence("roles")
+                .withClaimPresence("id")
                 .acceptExpiresAt(Long.MAX_VALUE) // so everytime Expires at is ok
                 .build()
         )
@@ -106,4 +110,24 @@ fun AuthenticationConfig.jwt(name: Roles, jwtConfig: JWTConfig) {
             )
         }
     }
+}
+
+suspend fun getLoggedUser(call: ApplicationCall): Triple<String, List<Roles>, LoginUserId> {
+    return getLoggedUser(call) { name, roles, userId -> Triple(name, roles, userId) }
+}
+
+
+suspend fun <T> getLoggedUser(
+    call: ApplicationCall,
+    build: suspend (String, List<Roles>, LoginUserId) -> T
+): T {
+    return option {
+        val payload = call.principal<JWTPrincipal>()?.payload.toOption().bind()
+
+        val name = payload.getClaim("name").asString()
+        val roles = payload.getClaim("roles").asList(String::class.java).map { Roles.valueOf(it) }
+        val userId = LoginUserId(payload.getClaim("id").asInt())
+
+        build(name, roles, userId)
+    }.orNull()!!
 }
