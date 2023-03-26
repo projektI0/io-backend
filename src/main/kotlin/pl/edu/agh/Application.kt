@@ -5,6 +5,10 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import org.koin.ktor.plugin.Koin
+import pl.edu.agh.auth.AuthModule.getKoinAuthModule
+import pl.edu.agh.auth.route.AuthRoutes.configureAuthRoutes
+import pl.edu.agh.auth.service.configureSecurity
 import pl.edu.agh.utils.*
 import pl.edu.agh.utils.DatabaseConnector.initDB
 
@@ -26,4 +30,9 @@ fun Application.module() {
         anyHost()
     }
     initDB()
+    install(Koin) {
+        modules(getKoinAuthModule())
+    }
+    configureSecurity()
+    configureAuthRoutes()
 }

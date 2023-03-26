@@ -32,6 +32,10 @@ object Utils {
     fun <T : Either<String, R>, R : Any> T.responsePair(serializer: KSerializer<R>) =
         this.fold({ (HttpStatusCode.BadRequest to it) }, { (HttpStatusCode.OK to it) })
 
+    @JvmName("responsePairEitherPair")
+    fun <T : Either<Pair<HttpStatusCode, String>, R>, R : Any> T.responsePair(serializer: KSerializer<R>) =
+        this.fold({ (it.first to it.second) }, { (HttpStatusCode.OK to it) })
+
 
     suspend inline fun <reified T : Any> handleOutput(
         call: ApplicationCall, output: (ApplicationCall) -> Pair<HttpStatusCode, T>
