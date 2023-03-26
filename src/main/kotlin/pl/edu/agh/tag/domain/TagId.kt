@@ -24,5 +24,4 @@ private object TagIdSerializer : GenericIntIdSerializer<TagId>(TagIdFactory) {
     override fun serialize(encoder: Encoder, value: TagId) = super.serialize(encoder, value)
 }
 
-
 fun Table.tagId(name: String): Column<TagId> = genericIntId(TagIdFactory)(name)

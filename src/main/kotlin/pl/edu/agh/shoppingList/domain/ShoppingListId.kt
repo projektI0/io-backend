@@ -24,5 +24,4 @@ private object ShoppingListIdSerializer : GenericIntIdSerializer<ShoppingListId>
     override fun serialize(encoder: Encoder, value: ShoppingListId) = super.serialize(encoder, value)
 }
 
-
 fun Table.shoppingListId(name: String): Column<ShoppingListId> = genericIntId(ShoppingListIdFactory)(name)

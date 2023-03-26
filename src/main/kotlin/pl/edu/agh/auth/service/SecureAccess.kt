@@ -28,9 +28,7 @@ fun Application.configureSecurity() {
     }
 }
 
-fun Route.authenticate(
-    vararg roles: Roles, build: Route.() -> Unit
-): Route {
+fun Route.authenticate(vararg roles: Roles, build: Route.() -> Unit): Route {
     return authenticate(*roles.map { it.roleName }.toTypedArray()) {
         build()
     }
@@ -47,9 +45,7 @@ private fun Application.getConfigProperty(path: String): String {
 }
 
 
-data class JWTConfig(
-    val audience: String, val realm: String, val secret: String, val domain: String
-)
+data class JWTConfig(val audience: String, val realm: String, val secret: String, val domain: String)
 
 private fun Application.jwtAudience(): String {
     return this.getConfigProperty("jwt.audience")
@@ -79,9 +75,7 @@ private fun JWTCredential.validateRole(role: Roles): Either<String, JWTCredentia
     )
 
 
-fun AuthenticationConfig.jwt(
-    name: Roles, jwtConfig: JWTConfig
-) {
+fun AuthenticationConfig.jwt(name: Roles, jwtConfig: JWTConfig) {
     jwt(name.roleName) {
         verifier(
             JWT.require(Algorithm.HMAC256(jwtConfig.secret))
@@ -112,5 +106,4 @@ fun AuthenticationConfig.jwt(
             )
         }
     }
-
 }
