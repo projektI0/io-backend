@@ -29,7 +29,7 @@ object AuthRoutes {
 
                         signedUserResponse.mapLeft {
                             logger.warn("User registration failed: $it")
-                            Pair(HttpStatusCode.BadRequest, "Cound not register user")
+                            Pair(HttpStatusCode.BadRequest, "Could not register user")
                         }.responsePair(LoginUserData.serializer())
                     }
                 }
@@ -42,7 +42,7 @@ object AuthRoutes {
                         val signedUserResponse = authService.signInUser(userData)
                         signedUserResponse.mapLeft {
                             logger.warn("User login failed: $it")
-                            Pair(HttpStatusCode.BadRequest, "Cound not login user")
+                            Pair(HttpStatusCode.BadRequest, "Could not login user")
                         }.responsePair(LoginUserData.serializer())
                     }
                 }

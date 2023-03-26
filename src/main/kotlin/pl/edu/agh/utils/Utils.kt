@@ -16,15 +16,13 @@ object Utils {
 
     @JvmName("responsePairMapList")
     fun <T : Either<String, Map<K, List<V>>>, K : Any, V : Any> T.responsePair(
-        serializer: KSerializer<K>,
-        serializer2: KSerializer<V>
+        serializer: KSerializer<K>, serializer2: KSerializer<V>
     ) =
         this.fold({ (HttpStatusCode.BadRequest to it) }, { (HttpStatusCode.OK to it) })
 
     @JvmName("responsePairMap")
     fun <T : Either<String, Map<K, V>>, K : Any, V : Any> T.responsePair(
-        serializer: KSerializer<K>,
-        serializer2: KSerializer<V>
+        serializer: KSerializer<K>, serializer2: KSerializer<V>
     ) =
         this.fold({ (HttpStatusCode.BadRequest to it) }, { (HttpStatusCode.OK to it) })
 
@@ -39,7 +37,7 @@ object Utils {
 
     suspend inline fun <reified T : Any> handleOutput(
         call: ApplicationCall, output: (ApplicationCall) -> Pair<HttpStatusCode, T>
-    ): Unit {
+    ) {
         return output(call).let { (status, value) ->
             call.respond(status, value)
         }

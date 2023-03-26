@@ -16,9 +16,7 @@ open class DomainException(
     val httpStatusCode: HttpStatusCode, val userMessage: String, val internalMessage: String
 )
 
-sealed class RegisterException(
-    userMessage: String, internalMessage: String
-) : DomainException(
+sealed class RegisterException(userMessage: String, internalMessage: String) : DomainException(
     HttpStatusCode.BadRequest, userMessage, internalMessage
 ) {
     class EmailAlreadyExists(email: String) :
@@ -27,9 +25,7 @@ sealed class RegisterException(
     object PasswordTooShort : RegisterException("Password is too short", "Password is too short while registering user")
 }
 
-sealed class LoginException(
-    userMessage: String, internalMessage: String
-) : DomainException(
+sealed class LoginException(userMessage: String, internalMessage: String) : DomainException(
     HttpStatusCode.BadRequest, userMessage, internalMessage
 ) {
     class UserNotFound(email: String) :

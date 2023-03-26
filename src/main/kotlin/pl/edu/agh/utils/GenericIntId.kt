@@ -10,7 +10,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.vendors.currentDialect
 
 @Serializable(with = GenericIntIdSerializer::class)
-abstract class GenericIntId<T>() : Comparable<GenericIntId<T>> {
+abstract class GenericIntId<T> : Comparable<GenericIntId<T>> {
     abstract val id: Int
     override fun compareTo(other: GenericIntId<T>): Int {
         return id.compareTo(other.id)
@@ -31,11 +31,6 @@ abstract class GenericIntIdSerializer<T : GenericIntId<T>>(private val factory: 
     }
 }
 
-
-fun <T : GenericIntId<T>> Table.genericIntId(factory: GenericIntIdFactory<T>): (String) -> Column<T> = {
-    registerColumn(it, GenericIntIdColumnType<T>(factory))
-}
-
 class GenericIntIdColumnType<T : GenericIntId<T>>(private val factory: GenericIntIdFactory<T>) : ColumnType() {
     override fun sqlType(): String = currentDialect.dataTypeProvider.integerType()
     override fun valueFromDB(value: Any): T = when (value) {
@@ -51,4 +46,9 @@ class GenericIntIdColumnType<T : GenericIntId<T>>(private val factory: GenericIn
         }
         return null
     }
+
+}
+
+fun <T : GenericIntId<T>> Table.genericIntId(factory: GenericIntIdFactory<T>): (String) -> Column<T> = {
+    registerColumn(it, GenericIntIdColumnType(factory))
 }
