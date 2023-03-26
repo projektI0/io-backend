@@ -19,7 +19,7 @@ private object ProductIdFactory : GenericIntIdFactory<ProductId>() {
 }
 
 @Serializer(forClass = ProductId::class)
-private object ProductIdSerializer : GenericIntIdSerializer<ProductId>(ProductIdFactory) {
+object ProductIdSerializer : GenericIntIdSerializer<ProductId>(ProductIdFactory) {
 
     override fun deserialize(decoder: Decoder): ProductId = super.deserialize(decoder)
 

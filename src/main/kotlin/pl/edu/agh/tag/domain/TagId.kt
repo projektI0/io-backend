@@ -19,7 +19,7 @@ private object TagIdFactory : GenericIntIdFactory<TagId>() {
 }
 
 @Serializer(forClass = TagId::class)
-private object TagIdSerializer : GenericIntIdSerializer<TagId>(TagIdFactory) {
+object TagIdSerializer : GenericIntIdSerializer<TagId>(TagIdFactory) {
     override fun deserialize(decoder: Decoder): TagId = super.deserialize(decoder)
     override fun serialize(encoder: Encoder, value: TagId) = super.serialize(encoder, value)
 }

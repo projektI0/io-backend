@@ -1,7 +1,6 @@
-package pl.edu.agh.shoppingList.utils
+package pl.edu.agh.utils
 
 import io.ktor.http.*
-import pl.edu.agh.utils.LoggerDelegate
 
 object DomainExceptionLogger {
     val logger by LoggerDelegate()

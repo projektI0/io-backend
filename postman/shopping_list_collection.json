@@ -7,6 +7,92 @@
 	},
 	"item": [
 		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Create new product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"shoppingListId\": {{listId}},\n    \"productId\": {{productId}},\n    \"quantity\": 123\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/shopping-lists/{{listId}}/products/",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shopping-lists",
+								"{{listId}}",
+								"products",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change quantity of product in shopping list",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"shoppingListId\": {{listId}},\n    \"productId\": {{productId}},\n    \"quantity\": 12\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/shopping-lists/{{listId}}/products/{{productId}}",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shopping-lists",
+								"{{listId}}",
+								"products",
+								"{{productId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete product from shopping list",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/shopping-lists/{{listId}}/products/{{productId}}",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shopping-lists",
+								"{{listId}}",
+								"products",
+								"{{productId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "Get My shopping lists",
 			"request": {
 				"method": "GET",
@@ -14,7 +100,8 @@
 					{
 						"key": "Authorization",
 						"value": "Bearer {{token}}",
-						"type": "text"
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"url": {
@@ -86,14 +173,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{host}}/shopping-lists/43",
+					"raw": "http://{{host}}/shopping-lists/44",
 					"protocol": "http",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"shopping-lists",
-						"43"
+						"44"
 					]
 				}
 			},
@@ -111,20 +198,50 @@
 					}
 				],
 				"url": {
-					"raw": "http://{{host}}/shopping-lists/43",
+					"raw": "http://{{host}}/shopping-lists/44",
 					"protocol": "http",
 					"host": [
 						"{{host}}"
 					],
 					"path": [
 						"shopping-lists",
-						"43"
+						"44"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Shopping List View",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{host}}/shopping-lists/{{listId}}/view",
+					"protocol": "http",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"shopping-lists",
+						"{{listId}}",
+						"view"
 					]
 				}
 			},
 			"response": []
 		}
 	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
 	"event": [
 		{
 			"listen": "prerequest",
@@ -155,6 +272,15 @@
 			"key": "token",
 			"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJqd3QtYXVkaWVuY2UiLCJyb2xlcyI6WyJVU0VSIl0sImlzcyI6Imh0dHA6Ly93d3cuaW8tYmFja2VuZC5hZ2guZWR1LnBsLyIsIm5hbWUiOiJlc3NhMTIzNDUiLCJpZCI6MX0.vgEX6zcs97gM_caX4w-wU0khurgT7wDV87TBhrEnXOY",
 			"type": "string"
+		},
+		{
+			"key": "listId",
+			"value": "46",
+			"type": "string"
+		},
+		{
+			"key": "productId",
+			"value": "12"
 		}
 	]
 }

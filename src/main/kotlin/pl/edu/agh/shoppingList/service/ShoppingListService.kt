@@ -10,7 +10,7 @@ import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.shoppingList.dao.ShoppingListDao
 import pl.edu.agh.shoppingList.dao.ShoppingListProductDao
 import pl.edu.agh.shoppingList.domain.*
-import pl.edu.agh.shoppingList.utils.DomainException
+import pl.edu.agh.utils.DomainException
 import pl.edu.agh.utils.Transactor
 
 class ShoppingListCreationError(userId: LoginUserId, name: String) :

@@ -1,13 +1,10 @@
 package pl.edu.agh.shoppingList.route
 
-import arrow.core.continuations.Effect
 import arrow.core.continuations.either
 import arrow.core.right
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import org.koin.ktor.ext.inject
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.service.authenticate
@@ -18,7 +15,6 @@ import pl.edu.agh.shoppingList.domain.ShoppingListId
 import pl.edu.agh.shoppingList.domain.ShoppingListProduct
 import pl.edu.agh.shoppingList.domain.ShoppingListView
 import pl.edu.agh.shoppingList.service.ShoppingListService
-import pl.edu.agh.shoppingList.utils.DomainException
 import pl.edu.agh.utils.LoggerDelegate
 import pl.edu.agh.utils.Utils.getBody
 import pl.edu.agh.utils.Utils.getParam
@@ -91,7 +87,7 @@ object ShoppingListRoutes {
                             }.responsePair(ShoppingList.serializer())
                         }
                     }
-                    get("/view") {
+                    get("/{id}/view") {
                         handleOutput(call) {
                             either {
                                 val shoppingListId = getParam("id") { ShoppingListId(it) }.bind()

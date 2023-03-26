@@ -10,7 +10,6 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
 import kotlinx.serialization.KSerializer
-import pl.edu.agh.shoppingList.utils.DomainException
 
 object Utils {
     @JvmName("responsePairList")
@@ -67,7 +66,7 @@ object Utils {
     suspend fun <T> PipelineContext<Unit, ApplicationCall>.getParam(
         name: String, transform: (Int) -> T
     ): Either<Pair<HttpStatusCode, String>, T> = option {
-        val strParam = Option.fromNullable(call.request.queryParameters[name]).bind()
+        val strParam = Option.fromNullable(call.parameters[name]).bind()
         val intParam = strParam.toIntOrNull().toOption().bind()
         transform(intParam)
     }.fold({ Pair(HttpStatusCode.BadRequest, "Missing parameter $name").left() }, { it.right() })

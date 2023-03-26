@@ -11,10 +11,7 @@ import pl.edu.agh.auth.domain.LoginUserDTO
 import pl.edu.agh.auth.domain.LoginUserData
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.table.UserRolesTable
-
-open class DomainException(
-    val httpStatusCode: HttpStatusCode, val userMessage: String, val internalMessage: String
-)
+import pl.edu.agh.utils.DomainException
 
 sealed class RegisterException(userMessage: String, internalMessage: String) : DomainException(
     HttpStatusCode.BadRequest, userMessage, internalMessage

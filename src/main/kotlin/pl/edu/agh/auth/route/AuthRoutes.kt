@@ -1,6 +1,5 @@
 package pl.edu.agh.auth.route
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
@@ -26,8 +25,7 @@ object AuthRoutes {
                         val userData = call.receive<LoginUserBasicData>()
                         val signedUserResponse = authService.signUpNewUser(userData)
                         signedUserResponse.mapLeft {
-                            logger.warn("User registration failed: $it")
-                            Pair(HttpStatusCode.BadRequest, "Could not register user")
+                            it.toResponsePairLogging()
                         }.responsePair(LoginUserData.serializer())
                     }
                 }
@@ -39,8 +37,7 @@ object AuthRoutes {
                         val userData = call.receive<LoginUserBasicData>()
                         val signedUserResponse = authService.signInUser(userData)
                         signedUserResponse.mapLeft {
-                            logger.warn("User login failed: $it")
-                            Pair(HttpStatusCode.BadRequest, "Could not login user")
+                            it.toResponsePairLogging()
                         }.responsePair(LoginUserData.serializer())
                     }
                 }
