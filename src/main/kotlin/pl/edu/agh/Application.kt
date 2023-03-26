@@ -27,7 +27,8 @@ fun Application.module() {
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Post)
-        allowHeader(HttpHeaders.Authorization)
+        allowHeadersPrefixed("")
+        allowNonSimpleContentTypes = true
         anyHost()
     }
     initDB()
