@@ -3,6 +3,7 @@ package pl.edu.agh.auth.service
 import arrow.core.Either
 import arrow.core.continuations.either
 import arrow.core.right
+import io.ktor.http.*
 import org.jetbrains.exposed.sql.batchInsert
 import pl.edu.agh.auth.dao.UserDao
 import pl.edu.agh.auth.domain.LoginUserBasicData
@@ -11,14 +12,31 @@ import pl.edu.agh.auth.domain.LoginUserData
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.table.UserRolesTable
 
-enum class RegisterException {
-    EMAIL_ALREADY_EXISTS,
-    PASSWORD_TOO_SHORT
+open class DomainException(
+    val httpStatusCode: HttpStatusCode, val userMessage: String, val internalMessage: String
+)
+
+sealed class RegisterException(
+    userMessage: String, internalMessage: String
+) : DomainException(
+    HttpStatusCode.BadRequest, userMessage, internalMessage
+) {
+    class EmailAlreadyExists(email: String) :
+        RegisterException("Email already exists", "Email already exists while registering user with email: $email")
+
+    object PasswordTooShort : RegisterException("Password is too short", "Password is too short while registering user")
 }
 
-enum class LoginException {
-    USER_NOT_FOUND,
-    WRONG_PASSWORD
+sealed class LoginException(
+    userMessage: String, internalMessage: String
+) : DomainException(
+    HttpStatusCode.BadRequest, userMessage, internalMessage
+) {
+    class UserNotFound(email: String) :
+        LoginException("Wrong login or password", "User not found while logging in user with email: $email")
+
+    class WrongPassword(email: String) :
+        LoginException("Wrong login or password", "Wrong password while logging in user with email: $email")
 }
 
 interface AuthService {
@@ -31,18 +49,13 @@ class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : 
 
     override suspend fun signUpNewUser(loginUserBasicData: LoginUserBasicData): Either<RegisterException, LoginUserData> =
         either {
-            Either.conditionally(
-                loginUserBasicData.password.length > 8,
-                ifFalse = { RegisterException.PASSWORD_TOO_SHORT },
-                ifTrue = { })
-                .bind()
+            Either.conditionally(loginUserBasicData.password.length > 8,
+                ifFalse = { RegisterException.PasswordTooShort },
+                ifTrue = { }).bind()
 
-            UserDao
-                .findUserByEmail(loginUserBasicData.email)
-                .map { RegisterException.EMAIL_ALREADY_EXISTS }
-                .toEither { }
-                .swap()
-                .bind()
+            UserDao.findUserByEmail(loginUserBasicData.email)
+                .map { RegisterException.EmailAlreadyExists(loginUserBasicData.email) }
+                .toEither { }.swap().bind()
 
             val newId = UserDao.insertNewUser(loginUserBasicData)
             val basicRoles = listOf(Roles.USER)
@@ -61,18 +74,13 @@ class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : 
 
     override suspend fun signInUser(loginUserBasicData: LoginUserBasicData): Either<LoginException, LoginUserData> =
         either {
-            UserDao
-                .findUserByEmail(loginUserBasicData.email)
-                .toEither { LoginException.USER_NOT_FOUND }
-                .bind()
+            UserDao.findUserByEmail(loginUserBasicData.email)
+                .toEither { LoginException.UserNotFound(loginUserBasicData.email) }.bind()
 
-            val user = UserDao
-                .tryLogin(loginUserBasicData.email, loginUserBasicData.password)
-                .toEither { LoginException.WRONG_PASSWORD }
-                .bind()
+            val user = UserDao.tryLogin(loginUserBasicData.email, loginUserBasicData.password)
+                .toEither { LoginException.WrongPassword(loginUserBasicData.email) }.bind()
 
-            val userRoles = UserDao
-                .getUserRoles(user.id)
+            val userRoles = UserDao.getUserRoles(user.id)
 
             LoginUserData(
                 loginUserDTO = user,
