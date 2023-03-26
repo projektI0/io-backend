@@ -8,8 +8,14 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
+import io.ktor.util.reflect.*
 import io.ktor.websocket.*
+import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
+import kotlin.reflect.typeOf
 
 object Utils {
     @JvmName("responsePairList")
@@ -34,6 +40,12 @@ object Utils {
     fun <T : Either<Pair<HttpStatusCode, String>, R>, R : Any> T.responsePair(serializer: KSerializer<R>) =
         this.fold({ (it.first to it.second) }, { (HttpStatusCode.OK to it) })
 
+    @JvmName("responsePairDBQueryWithCount")
+    inline fun <T : Either<Pair<HttpStatusCode, String>, DBQueryResponseWithCount<R>>,reified R : Any> T.responsePair() =
+        this.fold(
+            { (it.first to it.second) },
+            { (HttpStatusCode.OK to it) })
+
     @JvmName("responsePairEitherList")
     fun <T : Either<Pair<HttpStatusCode, String>, List<R>>, R : Any> T.responsePair(serializer: KSerializer<R>) =
         this.fold({ (it.first to it.second) }, { (HttpStatusCode.OK to it) })
@@ -46,6 +58,7 @@ object Utils {
     fun <T : List<R>, R> T.responsePair(serializer: KSerializer<R>) = (HttpStatusCode.OK to this)
 
 
+    @OptIn(InternalSerializationApi::class)
     suspend inline fun <reified T : Any> handleOutput(
         call: ApplicationCall, output: (ApplicationCall) -> Pair<HttpStatusCode, T>
     ) {
