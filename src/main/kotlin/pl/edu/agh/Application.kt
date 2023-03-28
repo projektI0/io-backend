@@ -9,6 +9,8 @@ import org.koin.ktor.plugin.Koin
 import pl.edu.agh.auth.AuthModule.getKoinAuthModule
 import pl.edu.agh.auth.route.AuthRoutes.configureAuthRoutes
 import pl.edu.agh.auth.service.configureSecurity
+import pl.edu.agh.shop.route.ShopRoutes.configureShopRoutes
+import pl.edu.agh.shop.ShopModule.getKoinShopModule
 import pl.edu.agh.shoppingList.ShoppingListModule.getKoinShoppingListModule
 import pl.edu.agh.shoppingList.route.ShoppingListRoutes.configureShoppingListRoutes
 import pl.edu.agh.utils.*
@@ -33,9 +35,10 @@ fun Application.module() {
     }
     initDB()
     install(Koin) {
-        modules(getKoinAuthModule(), getKoinShoppingListModule())
+        modules(getKoinAuthModule(), getKoinShoppingListModule(), getKoinShopModule())
     }
     configureSecurity()
     configureAuthRoutes()
     configureShoppingListRoutes()
+    configureShopRoutes()
 }
