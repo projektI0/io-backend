@@ -16,15 +16,15 @@ import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionA
 import org.slf4j.LoggerFactory
 
 object DatabaseConnector {
-
     fun initDB() {
-        val configPath = "/dbresource.properties"
+        val ioBackendDocker: Boolean = System.getenv("IO_BACKEND_DOCKER").toBooleanStrictOrNull() ?: false
+        val configPath = if (ioBackendDocker) "/dbresourcedocker.properties" else "/dbresource.properties"
+
         val dbConfig = HikariConfig(configPath)
         val dataSource = HikariDataSource(dbConfig)
         Database.connect(dataSource)
         LoggerFactory.getLogger(Application::class.simpleName).info("Initialized Database")
     }
-
 }
 
 object Transactor {
