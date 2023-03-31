@@ -33,7 +33,6 @@ object ProductDao {
                         .select { ProductTable.ts.selectTS(names) }
 
                 val count = mainQuery.count()
-
                 val data = mainQuery
                     .limit(limit, offset)
                     .map { ProductTable.toDomain(it) }

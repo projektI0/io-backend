@@ -26,7 +26,7 @@ class ProductServiceImpl : ProductService {
     override fun getProducts(productFilterRequest: ProductFilterRequest): Effect<PaginationError, DBQueryResponseWithCount<Product>> =
         effect {
             Either.conditionally(
-                test = productFilterRequest.limit <= 0 || productFilterRequest.offset < 0 || productFilterRequest.limit > 50,
+                test = productFilterRequest.limit <= 0 || productFilterRequest.offset < 0,
                 ifTrue = { PaginationError(productFilterRequest) },
                 ifFalse = {
                     Transactor.dbQuery {
