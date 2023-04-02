@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 
 object DatabaseConnector {
     fun initDB() {
-        val ioBackendDocker: Boolean = System.getenv("IO_BACKEND_DOCKER").toBooleanStrictOrNull() ?: false
+        val ioBackendDocker: Boolean = System.getenv("IO_BACKEND_DOCKER")?.toBooleanStrictOrNull() ?: false
         val configPath = if (ioBackendDocker) "/dbresourcedocker.properties" else "/dbresource.properties"
 
         val dbConfig = HikariConfig(configPath)
