@@ -12,7 +12,7 @@ import pl.edu.agh.shoppingList.table.ShoppingListTable
 import pl.edu.agh.utils.LoggerDelegate
 
 object ShoppingListDao {
-    val logger by LoggerDelegate()
+    private val logger by LoggerDelegate()
     fun createShoppingList(shoppingListInput: ShoppingListInput): Option<ShoppingList> {
         logger.info("Creating shopping list $shoppingListInput")
         val returningId = ShoppingListTable.insert {

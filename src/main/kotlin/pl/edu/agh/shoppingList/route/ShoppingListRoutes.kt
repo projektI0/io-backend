@@ -103,7 +103,7 @@ object ShoppingListRoutes {
                         post("/") {
                             handleOutput(call) {
                                 either {
-                                    val shoppingListId = getParam("listId") { ShoppingListId(it.toInt()) }
+                                    val shoppingListId = getParam("listId") { ShoppingListId(it) }
                                     val shoppingListProduct = getBody<ShoppingListProduct>(call).bind()
                                     val (_, _, loginUserId) = getLoggedUser(call)
 

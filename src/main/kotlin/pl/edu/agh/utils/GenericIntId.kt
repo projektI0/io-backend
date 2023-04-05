@@ -9,20 +9,22 @@ import org.jetbrains.exposed.sql.ColumnType
 import org.jetbrains.exposed.sql.IntegerColumnType
 import org.jetbrains.exposed.sql.Table
 
-@Serializable(with = GenericIntIdSerializer::class)
-abstract class GenericIntId<T> : Comparable<GenericIntId<T>> {
-    abstract val id: Int
-    override fun compareTo(other: GenericIntId<T>): Int {
+typealias GenId<T> = GenericIntId<T>
+typealias GenFactory<T> = GenericIntIdFactory<T>
+typealias GenSerial<T> = GenericIntIdSerializer<T>
+
+@Serializable(with = GenSerial::class)
+open class GenericIntId<T>(val id: Int) : Comparable<GenId<T>> {
+    override fun compareTo(other: GenId<T>): Int {
         return id.compareTo(other.id)
     }
 }
 
-abstract class GenericIntIdFactory<T : GenericIntId<T>> {
+abstract class GenericIntIdFactory<T : GenId<T>> {
     abstract fun create(id: Int): T
 }
 
-abstract class GenericIntIdSerializer<T : GenericIntId<T>>(private val factory: GenericIntIdFactory<T>) :
-    KSerializer<T> {
+abstract class GenericIntIdSerializer<T : GenId<T>>(private val factory: GenFactory<T>) : KSerializer<T> {
 
     override fun deserialize(decoder: Decoder): T = factory.create(decoder.decodeInt())
 
@@ -31,7 +33,7 @@ abstract class GenericIntIdSerializer<T : GenericIntId<T>>(private val factory: 
     }
 }
 
-class GenericIntIdColumnType<T : GenericIntId<T>>(private val factory: GenericIntIdFactory<T>) : ColumnType() {
+class GenericIntIdColumnType<T : GenId<T>>(private val factory: GenFactory<T>) : ColumnType() {
     override var nullable: Boolean = false
 
     override fun sqlType(): String = IntegerColumnType().sqlType()
@@ -54,6 +56,6 @@ class GenericIntIdColumnType<T : GenericIntId<T>>(private val factory: GenericIn
 
 }
 
-fun <T : GenericIntId<T>> Table.genericIntId(factory: GenericIntIdFactory<T>): (String) -> Column<T> = {
+fun <T : GenId<T>> Table.genericIntId(factory: GenFactory<T>): (String) -> Column<T> = {
     registerColumn(it, GenericIntIdColumnType(factory))
 }

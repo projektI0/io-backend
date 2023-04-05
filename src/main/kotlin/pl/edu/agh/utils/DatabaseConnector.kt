@@ -27,7 +27,7 @@ object DatabaseConnector {
 }
 
 object Transactor {
-    val logger by LoggerDelegate()
+    private val logger by LoggerDelegate()
 
     suspend fun <T> dbQuery(block: suspend Transaction.() -> T): T =
         newSuspendedTransaction(Dispatchers.IO) { block(this) }
@@ -43,8 +43,8 @@ object Transactor {
                             rollback()
                         }
                         .mapLeft { empty }
-                        .tap {
-                            it.tapLeft {
+                        .tap { either ->
+                            either.tapLeft {
                                 logger.error("Rollback, user error $it")
                                 rollback()
                             }
@@ -66,7 +66,7 @@ object Transactor {
 object GINUtils {
 
     class TSExpression(private val columnName: String, expr: List<String>) : Op<Boolean>() {
-        private val parsedExpr = VarCharColumnType().notNullValueToDB(expr.map { "${it}:*" }.joinToString(" | "))
+        private val parsedExpr = VarCharColumnType().notNullValueToDB(expr.joinToString(" | ") { "${it}:*" })
 
         override fun toQueryBuilder(queryBuilder: QueryBuilder): Unit =
             queryBuilder { append("$columnName @@ to_tsquery('english', '${parsedExpr}')") }
