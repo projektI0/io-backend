@@ -4,8 +4,4 @@ import kotlinx.serialization.Serializable
 import pl.edu.agh.product.domain.ProductId
 
 @Serializable
-data class ShoppingListProduct(
-    val shoppingListId: ShoppingListId,
-    val productId: ProductId,
-    val quantity: Double
-)
+data class ShoppingListProduct(val shoppingListId: ShoppingListId, val productId: ProductId, val quantity: Double)

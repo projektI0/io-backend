@@ -13,10 +13,15 @@ object ShopDao {
             .limit(limit, offset = offset)
             .map { ShopTable.toDomain(it) }
 
-    fun getAllShopsWithinBounds(lowerLeftLat: Double, lowerLeftLng: Double, upperRightLat: Double, upperRightLng: Double ): List<ShopTableDTO> =
+    fun getAllShopsWithinBounds(
+        lowerLeftLat: Double,
+        lowerLeftLng: Double,
+        upperRightLat: Double,
+        upperRightLng: Double
+    ): List<ShopTableDTO> =
         ShopTable
             .select {
-                (ShopTable.latitude.between(lowerLeftLat, upperRightLat)) and (ShopTable.longitude.between(lowerLeftLng, upperRightLng))
+                ShopTable.latitude.between(lowerLeftLat, upperRightLat) and ShopTable.longitude.between(lowerLeftLng, upperRightLng)
             }
-            .map {ShopTable.toDomain(it)}
+            .map { ShopTable.toDomain(it) }
 }

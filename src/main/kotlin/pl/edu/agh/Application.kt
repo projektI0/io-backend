@@ -15,8 +15,8 @@ import pl.edu.agh.auth.service.configureSecurity
 import pl.edu.agh.product.ProductModule.getKoinProductModule
 import pl.edu.agh.product.domain.Product
 import pl.edu.agh.product.route.ProductRoutes.configureProductRoutes
-import pl.edu.agh.shop.route.ShopRoutes.configureShopRoutes
 import pl.edu.agh.shop.ShopModule.getKoinShopModule
+import pl.edu.agh.shop.route.ShopRoutes.configureShopRoutes
 import pl.edu.agh.shoppingList.ShoppingListModule.getKoinShoppingListModule
 import pl.edu.agh.shoppingList.route.ShoppingListRoutes.configureShoppingListRoutes
 import pl.edu.agh.utils.*
@@ -27,14 +27,16 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
     install(ContentNegotiation) {
-        json(Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-            encodeDefaults = true
-            serializersModule = SerializersModule {
-                contextual(DBQueryResponseWithCount.serializer(Product.serializer()))
+        json(
+            Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+                encodeDefaults = true
+                serializersModule = SerializersModule {
+                    contextual(DBQueryResponseWithCount.serializer(Product.serializer()))
+                }
             }
-        })
+        )
     }
     install(CORS) {
         allowMethod(HttpMethod.Options)
