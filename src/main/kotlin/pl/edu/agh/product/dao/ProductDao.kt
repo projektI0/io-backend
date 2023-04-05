@@ -2,7 +2,10 @@ package pl.edu.agh.product.dao
 
 import arrow.core.NonEmptyList
 import arrow.core.Option
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import pl.edu.agh.product.domain.Product
 import pl.edu.agh.product.table.ProductTable
 import pl.edu.agh.product.table.ProductTagTable

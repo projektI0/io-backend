@@ -1,6 +1,6 @@
 package pl.edu.agh.shoppingList
 
-import io.ktor.server.application.*
+import io.ktor.server.application.Application
 import org.koin.dsl.module
 import pl.edu.agh.shoppingList.service.ShoppingListService
 import pl.edu.agh.shoppingList.service.ShoppingListServiceImpl

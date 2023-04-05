@@ -1,8 +1,10 @@
 package pl.edu.agh.product.route
 
 import arrow.core.continuations.either
-import io.ktor.server.application.*
-import io.ktor.server.routing.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 import pl.edu.agh.product.domain.ProductFilterRequest
 import pl.edu.agh.product.service.ProductService

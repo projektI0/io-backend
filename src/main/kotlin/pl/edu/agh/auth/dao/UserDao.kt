@@ -22,7 +22,6 @@ object UserDao {
             it[password] = loginUserBasicData.password
         }.value
 
-
     fun findUserByEmail(email: String): Option<LoginUserDTO> =
         UserTable
             .select { UserTable.email eq email }
@@ -34,7 +33,6 @@ object UserDao {
             .select { UserTable.email eq email and (UserTable.password eq password) }
             .singleOrNone()
             .map { UserTable.toDomain(it) }
-
 
     fun getUserRoles(userId: LoginUserId): List<Roles> =
         RoleTable

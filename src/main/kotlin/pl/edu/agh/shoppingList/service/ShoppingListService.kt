@@ -4,12 +4,16 @@ import arrow.core.Either
 import arrow.core.continuations.Effect
 import arrow.core.continuations.effect
 import arrow.core.continuations.either
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.shoppingList.dao.ShoppingListDao
 import pl.edu.agh.shoppingList.dao.ShoppingListProductDao
-import pl.edu.agh.shoppingList.domain.*
+import pl.edu.agh.shoppingList.domain.ShoppingList
+import pl.edu.agh.shoppingList.domain.ShoppingListId
+import pl.edu.agh.shoppingList.domain.ShoppingListInput
+import pl.edu.agh.shoppingList.domain.ShoppingListProduct
+import pl.edu.agh.shoppingList.domain.ShoppingListView
 import pl.edu.agh.utils.DomainException
 import pl.edu.agh.utils.Transactor
 
@@ -29,7 +33,9 @@ interface ShoppingListService {
     fun deleteShoppingList(userId: LoginUserId, id: ShoppingListId): Effect<ListNotFoundError, ShoppingList>
     suspend fun getAllShoppingListsByUserId(userId: LoginUserId): List<ShoppingList>
     fun updateShoppingList(
-        userId: LoginUserId, id: ShoppingListId, name: String
+        userId: LoginUserId,
+        id: ShoppingListId,
+        name: String
     ): Effect<ListNotFoundError, ShoppingList>
 
     fun addProductToList(
@@ -54,7 +60,8 @@ interface ShoppingListService {
 
 class ShoppingListServiceImpl : ShoppingListService {
     override fun createShoppingList(
-        userId: LoginUserId, name: String
+        userId: LoginUserId,
+        name: String
     ): Effect<ShoppingListCreationError, ShoppingList> = effect {
         val shoppingListInput = ShoppingListInput(userId, name)
         Transactor.dbQuery {
@@ -140,7 +147,6 @@ class ShoppingListServiceImpl : ShoppingListService {
             ShoppingListProductDao.deleteProductFromShoppingList(shoppingListId, productId)
         }
     }
-
 
     override fun updateProductQuantity(
         userId: LoginUserId,

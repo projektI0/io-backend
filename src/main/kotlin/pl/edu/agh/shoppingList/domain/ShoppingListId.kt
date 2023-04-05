@@ -1,5 +1,6 @@
 package pl.edu.agh.shoppingList.domain
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.encoding.Decoder
@@ -18,6 +19,7 @@ object ShoppingListIdFactory : GenericIntIdFactory<ShoppingListId>() {
     override fun create(id: Int): ShoppingListId = ShoppingListId(id)
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = ShoppingListId::class)
 private object ShoppingListIdSerializer : GenericIntIdSerializer<ShoppingListId>(ShoppingListIdFactory) {
     override fun deserialize(decoder: Decoder): ShoppingListId = super.deserialize(decoder)

@@ -15,6 +15,10 @@ object ShopTable : Table("SHOP") {
     val address: Column<String> = varchar("ADDRESS", 256)
 
     fun toDomain(it: ResultRow): ShopTableDTO = ShopTableDTO(
-        id = it[id], name = it[name], longitude = it[longitude], latitude = it[latitude], address = it[address]
+        id = it[id],
+        name = it[name],
+        longitude = it[longitude],
+        latitude = it[latitude],
+        address = it[address]
     )
 }

@@ -4,7 +4,7 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.continuations.Effect
 import arrow.core.continuations.effect
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import pl.edu.agh.product.dao.ProductDao
 import pl.edu.agh.product.domain.Product
 import pl.edu.agh.product.domain.ProductFilterRequest
@@ -36,6 +36,7 @@ class ProductServiceImpl : ProductService {
                             productFilterRequest.offset
                         )()
                     }
-                }).swap().bind()
+                }
+            ).swap().bind()
         }
 }

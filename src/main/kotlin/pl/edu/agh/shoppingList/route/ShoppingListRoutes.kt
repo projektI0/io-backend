@@ -2,9 +2,15 @@ package pl.edu.agh.shoppingList.route
 
 import arrow.core.continuations.either
 import arrow.core.right
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.routing.delete
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.put
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.service.authenticate
@@ -70,7 +76,9 @@ object ShoppingListRoutes {
                                 val (_, _, loginUserId) = getLoggedUser(call)
 
                                 shoppingListService.updateShoppingList(
-                                    loginUserId, shoppingListId, newShoppingListName
+                                    loginUserId,
+                                    shoppingListId,
+                                    newShoppingListName
                                 ).toResponsePairLogging().bind()
                             }.responsePair(ShoppingList.serializer())
                         }
@@ -103,12 +111,13 @@ object ShoppingListRoutes {
                         post("/") {
                             handleOutput(call) {
                                 either {
-                                    val shoppingListId = getParam("listId") { ShoppingListId(it.toInt()) }
+                                    val shoppingListId = getParam("listId") { ShoppingListId(it) }
                                     val shoppingListProduct = getBody<ShoppingListProduct>(call).bind()
                                     val (_, _, loginUserId) = getLoggedUser(call)
 
                                     shoppingListService.addProductToList(
-                                        loginUserId, shoppingListProduct
+                                        loginUserId,
+                                        shoppingListProduct
                                     ).toResponsePairLogging().bind()
                                 }.responsePair()
                             }
@@ -122,7 +131,8 @@ object ShoppingListRoutes {
                                     val (_, _, loginUserId) = getLoggedUser(call)
 
                                     shoppingListService.updateProductQuantity(
-                                        loginUserId, shoppingListProduct
+                                        loginUserId,
+                                        shoppingListProduct
                                     ).toResponsePairLogging().bind()
                                 }.responsePair()
                             }
@@ -136,7 +146,9 @@ object ShoppingListRoutes {
                                     val (_, _, userId) = getLoggedUser(call)
 
                                     shoppingListService.removeProductFromList(
-                                        userId, shoppingListId, productId
+                                        userId,
+                                        shoppingListId,
+                                        productId
                                     ).toResponsePairLogging().bind()
                                 }.responsePair()
                             }

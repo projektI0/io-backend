@@ -30,7 +30,7 @@ object ShopRoutes {
                     }
                     post("/filter") {
                         Utils.handleOutput(call) {
-                            either<Pair<HttpStatusCode, String>, List<ShopTableDTO>> {
+                            either {
                                 val shopsBoundsRequest = Utils.getBody<ShopsBoundsRequest>(call).bind()
                                 shopService.getAllShopsWithinBounds(shopsBoundsRequest).right().bind()
                             }.responsePair(ShopTableDTO.serializer())

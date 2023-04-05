@@ -51,7 +51,6 @@ class GenericIntIdColumnType<T : GenericIntId<T>>(private val factory: GenericIn
         }
         return null
     }
-
 }
 
 fun <T : GenericIntId<T>> Table.genericIntId(factory: GenericIntIdFactory<T>): (String) -> Column<T> = {

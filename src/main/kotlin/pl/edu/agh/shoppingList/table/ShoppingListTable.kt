@@ -23,6 +23,4 @@ object ShoppingListTable : Table("SHOPPING_LIST") {
         ownerId = it[ownerId],
         createdAt = it[createdAt]
     )
-
 }
-
