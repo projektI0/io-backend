@@ -7,8 +7,8 @@ import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.product.domain.productId
 import pl.edu.agh.product.table.ProductTable
 import pl.edu.agh.shoppingList.domain.ShoppingListId
-import pl.edu.agh.shoppingList.domain.ShoppingListProduct
 import pl.edu.agh.shoppingList.domain.ShoppingListProductView
+import pl.edu.agh.shoppingList.domain.dto.ShoppingListProductDTO
 import pl.edu.agh.shoppingList.domain.shoppingListId
 
 object ShoppingListProductTable : Table("SHOPPING_LIST_PRODUCT") {
@@ -16,7 +16,7 @@ object ShoppingListProductTable : Table("SHOPPING_LIST_PRODUCT") {
     val productId: Column<ProductId> = productId("PRODUCT_ID")
     val quantity: Column<Double> = double("QUANTITY")
 
-    fun toDomain(it: ResultRow): ShoppingListProduct = ShoppingListProduct(
+    fun toDomain(it: ResultRow): ShoppingListProductDTO = ShoppingListProductDTO(
         shoppingListId = it[shoppingListId],
         productId = it[productId],
         quantity = it[quantity]

@@ -4,13 +4,13 @@ import arrow.core.Either
 import arrow.core.NonEmptyList
 import arrow.core.continuations.Effect
 import arrow.core.continuations.effect
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.product.dao.ProductDao
-import pl.edu.agh.product.domain.ProductTableDTO
-import pl.edu.agh.product.domain.ProductData
-import pl.edu.agh.product.domain.ProductFilterRequest
 import pl.edu.agh.product.domain.ProductId
+import pl.edu.agh.product.domain.dto.ProductTableDTO
+import pl.edu.agh.product.domain.request.ProductFilterRequest
+import pl.edu.agh.product.domain.request.ProductRequest
 import pl.edu.agh.utils.DBQueryResponseWithCount
 import pl.edu.agh.utils.DomainException
 import pl.edu.agh.utils.Transactor
@@ -31,11 +31,10 @@ class ProductCreationError(name: String, userId: LoginUserId) :
 class ProductNotFound(productId: ProductId, userId: LoginUserId) :
     DomainException(HttpStatusCode.NotFound, "Product $productId not found for user $userId", "Product $productId not found for user $userId")
 
-
 interface ProductService {
     fun getProduct(productId: ProductId, userId: LoginUserId): Effect<ProductNotFound, ProductTableDTO>
-    fun createProduct(productData: ProductData, userId: LoginUserId): Effect<ProductCreationError, ProductTableDTO>
-    suspend fun getAllProducts(limit: Int, offset: Long, userId: LoginUserId) : List<ProductTableDTO>
+    fun createProduct(productRequest: ProductRequest, userId: LoginUserId): Effect<ProductCreationError, ProductTableDTO>
+    suspend fun getAllProducts(limit: Int, offset: Long, userId: LoginUserId): List<ProductTableDTO>
     fun getFilteredProducts(productFilterRequest: ProductFilterRequest, userId: LoginUserId): Effect<PaginationError, DBQueryResponseWithCount<ProductTableDTO>>
 }
 
@@ -67,14 +66,15 @@ class ProductServiceImpl : ProductService {
                             userId
                         )()
                     }
-                }).swap().bind()
+                }
+            ).swap().bind()
         }
-    override fun createProduct(productData: ProductData, userId: LoginUserId): Effect<ProductCreationError, ProductTableDTO> = effect {
+    override fun createProduct(productRequest: ProductRequest, userId: LoginUserId): Effect<ProductCreationError, ProductTableDTO> = effect {
         Transactor.dbQuery {
             ProductDao
-                .insertNewProduct(productData.name, productData.description, userId)
+                .insertNewProduct(productRequest.name, productRequest.description, userId)
                 .bind {
-                    ProductCreationError(productData.name, userId)
+                    ProductCreationError(productRequest.name, userId)
                 }
         }
     }

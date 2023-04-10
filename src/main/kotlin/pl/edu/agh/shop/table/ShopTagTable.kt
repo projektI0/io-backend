@@ -7,7 +7,7 @@ import pl.edu.agh.shop.domain.shopId
 import pl.edu.agh.tag.domain.TagId
 import pl.edu.agh.tag.domain.tagId
 
-class ShopTagTable : Table("SHOP_TAG") {
+object ShopTagTable : Table("SHOP_TAG") {
     val shopId: Column<ShopId> = shopId("SHOP_ID")
     val tagId: Column<TagId> = tagId("TAG_ID")
 }

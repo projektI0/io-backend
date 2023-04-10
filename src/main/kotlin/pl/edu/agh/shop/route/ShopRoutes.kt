@@ -2,17 +2,21 @@ package pl.edu.agh.shop.route
 
 import arrow.core.continuations.either
 import arrow.core.right
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.service.authenticate
 import pl.edu.agh.auth.service.getLoggedUser
-import pl.edu.agh.shop.domain.ShopData
 import pl.edu.agh.shop.domain.ShopId
-import pl.edu.agh.shop.domain.ShopTableDTO
-import pl.edu.agh.shop.domain.ShopsBoundsRequest
+import pl.edu.agh.shop.domain.dto.ShopTableDTO
+import pl.edu.agh.shop.domain.request.ShopRequest
+import pl.edu.agh.shop.domain.request.ShopsBoundsRequest
 import pl.edu.agh.shop.service.ShopService
 import pl.edu.agh.utils.LoggerDelegate
 import pl.edu.agh.utils.Utils
@@ -24,6 +28,7 @@ object ShopRoutes {
     private const val DEFAULT_LIMIT_VALUE: Int = 100
     private const val DEFAULT_OFFSET_VALUE: Long = 0
     private val logger by LoggerDelegate()
+
     fun Application.configureShopRoutes() {
         val shopService by inject<ShopService>()
 
@@ -68,11 +73,11 @@ object ShopRoutes {
                         logger.info("adding shop")
                         Utils.handleOutput(call) {
                             either {
-                                val shopData = Utils.getBody<ShopData>(call).bind()
+                                val shopRequest = Utils.getBody<ShopRequest>(call).bind()
                                 val (_, _, userId) = getLoggedUser(call)
 
                                 shopService
-                                    .createShop(shopData, userId)
+                                    .createShop(shopRequest, userId)
                                     .toResponsePairLogging()
                                     .bind()
                             }.responsePair(ShopTableDTO.serializer())

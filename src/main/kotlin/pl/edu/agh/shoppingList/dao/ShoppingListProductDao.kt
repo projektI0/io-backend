@@ -10,17 +10,18 @@ import org.jetbrains.exposed.sql.update
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.product.table.ProductTable
 import pl.edu.agh.shoppingList.domain.ShoppingListId
-import pl.edu.agh.shoppingList.domain.ShoppingListProduct
 import pl.edu.agh.shoppingList.domain.ShoppingListProductView
+import pl.edu.agh.shoppingList.domain.dto.ShoppingListProductDTO
 import pl.edu.agh.shoppingList.table.ShoppingListProductTable
+import pl.edu.agh.utils.Transactor
 
 object ShoppingListProductDao {
-    fun getAllShoppingListProducts(id: ShoppingListId): List<ShoppingListProduct> {
-        return ShoppingListProductTable.select { ShoppingListProductTable.shoppingListId eq id }
+    suspend fun getAllShoppingListProducts(id: ShoppingListId): List<ShoppingListProductDTO> = Transactor.dbQuery {
+        ShoppingListProductTable.select { ShoppingListProductTable.shoppingListId eq id }
             .map { ShoppingListProductTable.toDomain(it) }
     }
 
-    fun addProductToShoppingList(shoppingListProduct: ShoppingListProduct) {
+    fun addProductToShoppingList(shoppingListProduct: ShoppingListProductDTO) {
         ShoppingListProductTable.insert {
             it[shoppingListId] = shoppingListProduct.shoppingListId
             it[productId] = shoppingListProduct.productId
@@ -28,7 +29,7 @@ object ShoppingListProductDao {
         }
     }
 
-    fun updateProductInShoppingList(shoppingListProduct: ShoppingListProduct) {
+    fun updateProductInShoppingList(shoppingListProduct: ShoppingListProductDTO) {
         ShoppingListProductTable.update({
             (ShoppingListProductTable.shoppingListId eq shoppingListProduct.shoppingListId) and (ShoppingListProductTable.productId eq shoppingListProduct.productId)
         }) {

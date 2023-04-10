@@ -21,7 +21,7 @@ object ShoppingListIdFactory : GenericIntIdFactory<ShoppingListId>() {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = ShoppingListId::class)
-private object ShoppingListIdSerializer : GenericIntIdSerializer<ShoppingListId>(ShoppingListIdFactory) {
+object ShoppingListIdSerializer : GenericIntIdSerializer<ShoppingListId>(ShoppingListIdFactory) {
     override fun deserialize(decoder: Decoder): ShoppingListId = super.deserialize(decoder)
     override fun serialize(encoder: Encoder, value: ShoppingListId) = super.serialize(encoder, value)
 }

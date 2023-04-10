@@ -12,11 +12,13 @@ import org.koin.ktor.plugin.Koin
 import pl.edu.agh.auth.AuthModule.getKoinAuthModule
 import pl.edu.agh.auth.route.AuthRoutes.configureAuthRoutes
 import pl.edu.agh.auth.service.configureSecurity
+import pl.edu.agh.path.PathModule.getKoinPathModule
+import pl.edu.agh.path.route.PathRoutes.configurePathRoutes
 import pl.edu.agh.product.ProductModule.getKoinProductModule
-import pl.edu.agh.product.domain.ProductTableDTO
+import pl.edu.agh.product.domain.dto.ProductTableDTO
 import pl.edu.agh.product.route.ProductRoutes.configureProductRoutes
-import pl.edu.agh.shop.route.ShopRoutes.configureShopRoutes
 import pl.edu.agh.shop.ShopModule.getKoinShopModule
+import pl.edu.agh.shop.route.ShopRoutes.configureShopRoutes
 import pl.edu.agh.shoppingList.ShoppingListModule.getKoinShoppingListModule
 import pl.edu.agh.shoppingList.route.ShoppingListRoutes.configureShoppingListRoutes
 import pl.edu.agh.utils.*
@@ -32,8 +34,9 @@ fun Application.module() {
                 ignoreUnknownKeys = true
                 isLenient = true
                 encodeDefaults = true
-                serializersModule = SerializersModule {contextual(DBQueryResponseWithCount.serializer(ProductTableDTO.serializer()))}
-        })
+                serializersModule = SerializersModule { contextual(DBQueryResponseWithCount.serializer(ProductTableDTO.serializer())) }
+            }
+        )
     }
     install(CORS) {
         allowMethod(HttpMethod.Options)
@@ -47,11 +50,12 @@ fun Application.module() {
     }
     initDB()
     install(Koin) {
-        modules(getKoinAuthModule(), getKoinShoppingListModule(), getKoinProductModule(), getKoinShopModule())
+        modules(getKoinAuthModule(), getKoinShoppingListModule(), getKoinProductModule(), getKoinShopModule(), getKoinPathModule())
     }
     configureSecurity()
     configureAuthRoutes()
     configureShoppingListRoutes()
     configureProductRoutes()
     configureShopRoutes()
+    configurePathRoutes()
 }

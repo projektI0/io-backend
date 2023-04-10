@@ -15,13 +15,13 @@ import pl.edu.agh.utils.genericIntId
 @Serializable(with = ShopIdSerializer::class)
 data class ShopId(override val id: Int) : GenericIntId<ShopId>()
 
-private object ShopIdFactory : GenericIntIdFactory<ShopId>() {
+object ShopIdFactory : GenericIntIdFactory<ShopId>() {
     override fun create(id: Int): ShopId = ShopId(id)
 }
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = ShopId::class)
-private object ShopIdSerializer : GenericIntIdSerializer<ShopId>(ShopIdFactory) {
+object ShopIdSerializer : GenericIntIdSerializer<ShopId>(ShopIdFactory) {
     override fun deserialize(decoder: Decoder): ShopId = super.deserialize(decoder)
     override fun serialize(encoder: Encoder, value: ShopId) = super.serialize(encoder, value)
 }

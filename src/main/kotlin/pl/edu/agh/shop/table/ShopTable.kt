@@ -6,7 +6,7 @@ import org.jetbrains.exposed.sql.Table
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.auth.domain.loginUserId
 import pl.edu.agh.shop.domain.ShopId
-import pl.edu.agh.shop.domain.ShopTableDTO
+import pl.edu.agh.shop.domain.dto.ShopTableDTO
 import pl.edu.agh.shop.domain.shopId
 
 object ShopTable : Table("SHOP") {
