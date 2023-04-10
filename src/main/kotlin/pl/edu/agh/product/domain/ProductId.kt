@@ -15,7 +15,7 @@ import pl.edu.agh.utils.genericIntId
 @Serializable(ProductIdSerializer::class)
 data class ProductId(override val id: Int) : GenericIntId<ProductId>()
 
-private object ProductIdFactory : GenericIntIdFactory<ProductId>() {
+object ProductIdFactory : GenericIntIdFactory<ProductId>() {
     override fun create(id: Int): ProductId = ProductId(id)
 }
 

@@ -16,10 +16,10 @@ import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.service.authenticate
 import pl.edu.agh.auth.service.getLoggedUser
 import pl.edu.agh.product.domain.ProductId
-import pl.edu.agh.shoppingList.domain.ShoppingList
 import pl.edu.agh.shoppingList.domain.ShoppingListId
-import pl.edu.agh.shoppingList.domain.ShoppingListProduct
 import pl.edu.agh.shoppingList.domain.ShoppingListView
+import pl.edu.agh.shoppingList.domain.dto.ShoppingListDTO
+import pl.edu.agh.shoppingList.domain.dto.ShoppingListProductDTO
 import pl.edu.agh.shoppingList.service.ShoppingListService
 import pl.edu.agh.utils.LoggerDelegate
 import pl.edu.agh.utils.Utils.getBody
@@ -29,6 +29,8 @@ import pl.edu.agh.utils.Utils.responsePair
 import pl.edu.agh.utils.Utils.toResponsePairLogging
 
 object ShoppingListRoutes {
+    private const val DEFAULT_LIMIT_VALUE: Int = 100
+    private const val DEFAULT_OFFSET_VALUE: Long = 0
     private val logger by LoggerDelegate()
 
     fun Application.configureShoppingListRoutes() {
@@ -39,10 +41,13 @@ object ShoppingListRoutes {
                 route("/shopping-lists") {
                     get("/my") {
                         handleOutput(call) {
-                            either<Pair<HttpStatusCode, String>, List<ShoppingList>> {
+                            either<Pair<HttpStatusCode, String>, List<ShoppingListDTO>> {
+                                val limit = call.parameters["limit"]?.toIntOrNull() ?: DEFAULT_LIMIT_VALUE
+                                val offset = call.parameters["offset"]?.toLongOrNull() ?: DEFAULT_OFFSET_VALUE
                                 val (_, _, loginUserId) = getLoggedUser(call)
-                                shoppingListService.getAllShoppingListsByUserId(loginUserId).right().bind()
-                            }.responsePair(ShoppingList.serializer())
+                                shoppingListService.getAllShoppingListsByUserId(limit, offset, loginUserId).right()
+                                    .bind()
+                            }.responsePair(ShoppingListDTO.serializer())
                         }
                     }
                     get("/{id}") {
@@ -52,7 +57,7 @@ object ShoppingListRoutes {
                                 val (_, _, loginUserId) = getLoggedUser(call)
 
                                 shoppingListService.getShoppingList(loginUserId, id).toResponsePairLogging().bind()
-                            }.responsePair(ShoppingList.serializer())
+                            }.responsePair(ShoppingListDTO.serializer())
                         }
                     }
                     post("/") {
@@ -65,7 +70,7 @@ object ShoppingListRoutes {
                                     .createShoppingList(loginUserId, shoppingListName)
                                     .toResponsePairLogging()
                                     .bind()
-                            }.responsePair(ShoppingList.serializer())
+                            }.responsePair(ShoppingListDTO.serializer())
                         }
                     }
                     put("/{id}") {
@@ -80,7 +85,7 @@ object ShoppingListRoutes {
                                     shoppingListId,
                                     newShoppingListName
                                 ).toResponsePairLogging().bind()
-                            }.responsePair(ShoppingList.serializer())
+                            }.responsePair(ShoppingListDTO.serializer())
                         }
                     }
                     delete("/{id}") {
@@ -92,7 +97,7 @@ object ShoppingListRoutes {
                                 shoppingListService.deleteShoppingList(loginUserId, shoppingListId)
                                     .toResponsePairLogging()
                                     .bind()
-                            }.responsePair(ShoppingList.serializer())
+                            }.responsePair(ShoppingListDTO.serializer())
                         }
                     }
                     get("/{id}/view") {
@@ -112,12 +117,12 @@ object ShoppingListRoutes {
                             handleOutput(call) {
                                 either {
                                     val shoppingListId = getParam("listId") { ShoppingListId(it) }
-                                    val shoppingListProduct = getBody<ShoppingListProduct>(call).bind()
+                                    val shoppingListProductDTO = getBody<ShoppingListProductDTO>(call).bind()
                                     val (_, _, loginUserId) = getLoggedUser(call)
 
                                     shoppingListService.addProductToList(
                                         loginUserId,
-                                        shoppingListProduct
+                                        shoppingListProductDTO
                                     ).toResponsePairLogging().bind()
                                 }.responsePair()
                             }
@@ -127,12 +132,12 @@ object ShoppingListRoutes {
                                 either {
                                     val shoppingListId = getParam("listId") { ShoppingListId(it) }.bind()
                                     val shoppingListProductId = getParam("id") { ProductId(it) }.bind()
-                                    val shoppingListProduct = getBody<ShoppingListProduct>(call).bind()
+                                    val shoppingListProductDTO = getBody<ShoppingListProductDTO>(call).bind()
                                     val (_, _, loginUserId) = getLoggedUser(call)
 
                                     shoppingListService.updateProductQuantity(
                                         loginUserId,
-                                        shoppingListProduct
+                                        shoppingListProductDTO
                                     ).toResponsePairLogging().bind()
                                 }.responsePair()
                             }

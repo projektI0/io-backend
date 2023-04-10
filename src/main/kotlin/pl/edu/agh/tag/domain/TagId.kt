@@ -15,7 +15,7 @@ import pl.edu.agh.utils.genericIntId
 @Serializable(with = TagIdSerializer::class)
 data class TagId(override val id: Int) : GenericIntId<TagId>()
 
-private object TagIdFactory : GenericIntIdFactory<TagId>() {
+object TagIdFactory : GenericIntIdFactory<TagId>() {
     override fun create(id: Int): TagId = TagId(id)
 }
 

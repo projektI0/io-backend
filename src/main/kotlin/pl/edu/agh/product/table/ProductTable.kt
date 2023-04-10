@@ -2,12 +2,14 @@ package pl.edu.agh.product.table
 
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.select
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.auth.domain.loginUserId
-import pl.edu.agh.product.domain.ProductTableDTO
 import pl.edu.agh.product.domain.ProductId
-import pl.edu.agh.product.domain.ProductView
+import pl.edu.agh.product.domain.dto.ProductTableDTO
+import pl.edu.agh.product.domain.dto.ProductTagTableDTO
 import pl.edu.agh.product.domain.productId
 
 object ProductTable : Table("PRODUCT") {
@@ -17,9 +19,10 @@ object ProductTable : Table("PRODUCT") {
     val ts: Column<String> = varchar("ts", 255)
     val generatedByUserId: Column<LoginUserId?> = loginUserId("GENERATED_BY_USER_ID").nullable()
 
-    fun toDomainView(it: ResultRow): ProductView {
-        return ProductView(
-            id = it[id], name = it[name], description = it[description], tags = emptyList()
+    fun toDomainView(it: ResultRow): ProductTagTableDTO {
+        return ProductTagTableDTO(
+            ProductTableDTO(id = it[id], name = it[name], description = it[description]),
+            tags = ProductTagTable.select(ProductTagTable.productId.eq(it[id])).map { it[ProductTagTable.tagId] }.toSet()
         )
     }
 

@@ -3,17 +3,20 @@ package pl.edu.agh.product.dao
 import arrow.core.NonEmptyList
 import arrow.core.Option
 import arrow.core.firstOrNone
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
+import org.jetbrains.exposed.sql.Transaction
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.or
+import org.jetbrains.exposed.sql.select
 import pl.edu.agh.auth.domain.LoginUserId
-import pl.edu.agh.auth.table.UserTable
-import pl.edu.agh.product.domain.ProductTableDTO
 import pl.edu.agh.product.domain.ProductId
+import pl.edu.agh.product.domain.dto.ProductTableDTO
 import pl.edu.agh.product.table.ProductTable
 import pl.edu.agh.product.table.ProductTagTable
-import pl.edu.agh.shop.table.ShopTable
 import pl.edu.agh.utils.DBQueryResponseWithCount
 import pl.edu.agh.utils.GINUtils.selectTS
 
@@ -28,6 +31,7 @@ object ProductDao {
             }
             .limit(limit, offset = offset)
             .map { ProductTable.toDomain(it) }
+
     fun getFilteredProducts(
         productNames: Option<NonEmptyList<String>>,
         limit: Int,
@@ -63,13 +67,15 @@ object ProductDao {
             }
         )
     }
+
     fun getProduct(id: ProductId, userId: LoginUserId): Option<ProductTableDTO> =
         ProductTable
-            .select{
+            .select {
                 userIdCondition(userId) and (ProductTable.id eq id)
             }
             .firstOrNone()
             .map { ProductTable.toDomain(it) }
+
     fun insertNewProduct(name: String, description: String, userId: LoginUserId): Option<ProductTableDTO> {
         val newProductId = ProductTable.insert {
             it[ProductTable.name] = name

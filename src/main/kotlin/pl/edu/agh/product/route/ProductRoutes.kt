@@ -2,17 +2,21 @@ package pl.edu.agh.product.route
 
 import arrow.core.continuations.either
 import arrow.core.right
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.service.authenticate
 import pl.edu.agh.auth.service.getLoggedUser
-import pl.edu.agh.product.domain.ProductTableDTO
-import pl.edu.agh.product.domain.ProductData
-import pl.edu.agh.product.domain.ProductFilterRequest
 import pl.edu.agh.product.domain.ProductId
+import pl.edu.agh.product.domain.dto.ProductTableDTO
+import pl.edu.agh.product.domain.request.ProductFilterRequest
+import pl.edu.agh.product.domain.request.ProductRequest
 import pl.edu.agh.product.service.ProductService
 import pl.edu.agh.utils.LoggerDelegate
 import pl.edu.agh.utils.Utils
@@ -73,11 +77,11 @@ object ProductRoutes {
                         logger.info("adding product")
                         handleOutput(call) {
                             either {
-                                val productData = Utils.getBody<ProductData>(call).bind()
+                                val productRequest = Utils.getBody<ProductRequest>(call).bind()
                                 val (_, _, userId) = getLoggedUser(call)
 
                                 productService
-                                    .createProduct(productData, userId)
+                                    .createProduct(productRequest, userId)
                                     .toResponsePairLogging()
                                     .bind()
                             }.responsePair(ProductTableDTO.serializer())

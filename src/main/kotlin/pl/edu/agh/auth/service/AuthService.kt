@@ -6,10 +6,10 @@ import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import org.jetbrains.exposed.sql.batchInsert
 import pl.edu.agh.auth.dao.UserDao
-import pl.edu.agh.auth.domain.LoginUserBasicData
-import pl.edu.agh.auth.domain.LoginUserDTO
-import pl.edu.agh.auth.domain.LoginUserData
+import pl.edu.agh.auth.domain.LoginUserResponse
 import pl.edu.agh.auth.domain.Roles
+import pl.edu.agh.auth.domain.dto.LoginUserDTO
+import pl.edu.agh.auth.domain.request.LoginUserRequest
 import pl.edu.agh.auth.table.UserRolesTable
 import pl.edu.agh.utils.DomainException
 
@@ -37,25 +37,25 @@ sealed class LoginException(userMessage: String, internalMessage: String) : Doma
 }
 
 interface AuthService {
-    suspend fun signUpNewUser(loginUserBasicData: LoginUserBasicData): Either<RegisterException, LoginUserData>
-    suspend fun signInUser(loginUserBasicData: LoginUserBasicData): Either<LoginException, LoginUserData>
+    suspend fun signUpNewUser(loginUserRequest: LoginUserRequest): Either<RegisterException, LoginUserResponse>
+    suspend fun signInUser(loginUserRequest: LoginUserRequest): Either<LoginException, LoginUserResponse>
 }
 
 class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : AuthService {
 
-    override suspend fun signUpNewUser(loginUserBasicData: LoginUserBasicData): Either<RegisterException, LoginUserData> =
+    override suspend fun signUpNewUser(loginUserRequest: LoginUserRequest): Either<RegisterException, LoginUserResponse> =
         either {
             Either.conditionally(
-                loginUserBasicData.password.length > 8,
+                loginUserRequest.password.length > 8,
                 ifFalse = { RegisterException.PasswordTooShort },
                 ifTrue = { }
             ).bind()
 
-            UserDao.findUserByEmail(loginUserBasicData.email)
-                .map { RegisterException.EmailAlreadyExists(loginUserBasicData.email) }
+            UserDao.findUserByEmail(loginUserRequest.email)
+                .map { RegisterException.EmailAlreadyExists(loginUserRequest.email) }
                 .toEither { }.swap().bind()
 
-            val newId = UserDao.insertNewUser(loginUserBasicData)
+            val newId = UserDao.insertNewUser(loginUserRequest)
             val basicRoles = listOf(Roles.USER)
 
             UserRolesTable.batchInsert(basicRoles) { role ->
@@ -63,27 +63,27 @@ class AuthServiceImpl(private val tokenCreationService: TokenCreationService) : 
                 this[UserRolesTable.userId] = newId
             }
 
-            LoginUserData(
-                loginUserDTO = LoginUserDTO(id = newId, email = loginUserBasicData.email),
+            LoginUserResponse(
+                loginUserDTO = LoginUserDTO(id = newId, email = loginUserRequest.email),
                 roles = basicRoles,
-                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, basicRoles, newId)
+                jwtToken = tokenCreationService.createToken(loginUserRequest.email, basicRoles, newId)
             ).right().bind()
         }
 
-    override suspend fun signInUser(loginUserBasicData: LoginUserBasicData): Either<LoginException, LoginUserData> =
+    override suspend fun signInUser(loginUserRequest: LoginUserRequest): Either<LoginException, LoginUserResponse> =
         either {
-            UserDao.findUserByEmail(loginUserBasicData.email)
-                .toEither { LoginException.UserNotFound(loginUserBasicData.email) }.bind()
+            UserDao.findUserByEmail(loginUserRequest.email)
+                .toEither { LoginException.UserNotFound(loginUserRequest.email) }.bind()
 
-            val user = UserDao.tryLogin(loginUserBasicData.email, loginUserBasicData.password)
-                .toEither { LoginException.WrongPassword(loginUserBasicData.email) }.bind()
+            val user = UserDao.tryLogin(loginUserRequest.email, loginUserRequest.password)
+                .toEither { LoginException.WrongPassword(loginUserRequest.email) }.bind()
 
             val userRoles = UserDao.getUserRoles(user.id)
 
-            LoginUserData(
+            LoginUserResponse(
                 loginUserDTO = user,
                 roles = userRoles,
-                jwtToken = tokenCreationService.createToken(loginUserBasicData.email, userRoles, user.id)
+                jwtToken = tokenCreationService.createToken(loginUserRequest.email, userRoles, user.id)
             ).right().bind()
         }
 }
