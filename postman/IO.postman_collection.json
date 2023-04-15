@@ -1,13 +1,13 @@
 {
 	"info": {
-		"_postman_id": "74226580-00fb-45f8-bfba-0d3009999646",
+		"_postman_id": "427ff17e-a3a9-42b4-b176-4d4df059d446",
 		"name": "IO",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "16499945"
+		"_exporter_id": "22564350"
 	},
 	"item": [
 		{
-			"name": "auth",
+			"name": "Auth",
 			"item": [
 				{
 					"name": "Login",
@@ -66,7 +66,7 @@
 			]
 		},
 		{
-			"name": "shopping list",
+			"name": "Shopping List",
 			"item": [
 				{
 					"name": "Products",
@@ -299,13 +299,59 @@
 			"name": "Products",
 			"item": [
 				{
-					"name": "Products",
+					"name": "Products Filter",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"names\": [\"mach\"],\n    \"limit\": 49,\n    \"offset\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/products/filter",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"products",
+								"filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/products",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Product",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"testowy product\",\r\n    \"description\": \"fascynujacy opis\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -324,11 +370,30 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Product",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/products/1",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"products",
+								"1"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
 		{
-			"name": "external apis",
+			"name": "External APIs",
 			"item": [
 				{
 					"name": "https://overpass-api.de/api/interpreter",
@@ -408,6 +473,106 @@
 							"path": [
 								"api",
 								"interpreter"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Shops",
+			"item": [
+				{
+					"name": "Get shops within bounds",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"lowerLeftLat\":  10.0,\r\n    \"lowerLeftLng\":  10.0,\r\n    \"upperRightLat\": 51.0,\r\n    \"upperRightLng\": 51.0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/shops/filter",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shops",
+								"filter"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All shops",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/shops",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shops"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Shop",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Krakowski lokal\",\r\n    \"longitude\": 20.0,\r\n    \"latitude\": 20.0,\r\n    \"address\": \"Krakowsa 4\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{host}}/shops",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shops"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Shop",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{host}}/shops/1",
+							"protocol": "http",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"shops",
+								"1"
 							]
 						}
 					},
