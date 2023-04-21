@@ -1,9 +1,10 @@
 package pl.edu.agh.path.dao
 
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.select
 import pl.edu.agh.product.table.ProductTagTable
+import pl.edu.agh.shop.domain.ShopId
 import pl.edu.agh.shop.domain.dto.ShopTableDTO
 import pl.edu.agh.shop.table.ShopTable
 import pl.edu.agh.shop.table.ShopTagTable
@@ -12,23 +13,21 @@ import pl.edu.agh.tag.domain.TagId
 import pl.edu.agh.utils.Transactor
 
 object PathDao {
-    fun getTagsForShops(shops: Collection<ShopTableDTO>): Map<ShopTableDTO, Set<TagId>> {
-        val map = mutableMapOf<ShopTableDTO, Set<TagId>>()
-        shops.forEach { shop ->
-            map[shop] = ShopTagTable.select(ShopTagTable.shopId.eq(shop.id)).map { it[ShopTagTable.tagId] }.toSet()
-        }
-        return map
-    }
+    fun getTagsForShops(shops: Set<ShopId>): Map<ShopTableDTO, Set<TagId>> =
+        ShopTagTable
+            .join(ShopTable, JoinType.INNER, ShopTagTable.shopId, ShopTable.id)
+            .select(ShopTagTable.shopId.inList(shops))
+            .map { ShopTable.toDomain(it) to it[ShopTagTable.tagId] }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { it.value.toSet() }
 
-    fun getShopsForTags(shops: List<ShopTableDTO>, tags: Set<TagId>): Map<TagId, Set<ShopTableDTO>> {
-        val map = mutableMapOf<TagId, Set<ShopTableDTO>>()
-        tags.forEach { tag ->
-            map[tag] = (ShopTagTable innerJoin ShopTable).select(ShopTagTable.tagId.eq(tag)).map {
-                ShopTable.toDomain(it)
-            }.filter { shopTableDTO -> shops.contains(shopTableDTO) }.toSet()
-        }
-        return map
-    }
+    fun getShopsForTags(shops: Set<ShopId>, tags: Set<TagId>): Map<TagId, Set<ShopTableDTO>> =
+        ShopTagTable
+            .join(ShopTable, JoinType.INNER, ShopTagTable.shopId, ShopTable.id)
+            .select(ShopTagTable.tagId.inList(tags))
+            .map { it[ShopTagTable.tagId] to ShopTable.toDomain(it) }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { it.value.toSet() }
 
     suspend fun getTagsForProducts(products: List<ShoppingListProductDTO>): MutableSet<TagId> {
         return Transactor.dbQuery {
