@@ -19,8 +19,7 @@ class Point(private val x: Double, private val y: Double) {
 
 interface PathService {
     suspend fun findOptimalRoute(
-        pathRequest: PathRequest,
-        userId: LoginUserId
+        pathRequest: PathRequest, userId: LoginUserId
     ): PathResponse
 }
 
@@ -30,15 +29,17 @@ class PathServiceImpl : PathService {
         val products = ShoppingListProductDao.getAllShoppingListProducts(shoppingListId)
         val startX = pathRequest.longitude
         val startY = pathRequest.latitude
-        val shops = ShopDao.getAllShopsWithinBounds(startY - 5, startX - 5, startY + 5, startX + 5, userId)
+        val shopsIds =
+            ShopDao.getAllShopsWithinBounds(startY - 5, startX - 5, startY + 5, startX + 5, userId).map { it.id }
+                .toSet()
         // Create a set of all categories we need to buy
         val remainingTags = PathDao.getTagsForProducts(products)
 
         // Create a map of the shops by tags
-        val shopsByTags = PathDao.getShopsForTags(shops, remainingTags)
+        val shopsByTags = PathDao.getShopsForTags(shopsIds, remainingTags)
 
         // Create a map of the tags by shops
-        val tagsByShops = PathDao.getTagsForShops(shops)
+        val tagsByShops = PathDao.getTagsForShops(shopsIds)
 
         // Initialize the starting point as the current location
         var currentPoint = Point(startX, startY)
@@ -48,12 +49,10 @@ class PathServiceImpl : PathService {
 
         while (remainingTags.isNotEmpty()) {
             // Find the nearest shop that sells one of the remaining categories
-            val nearestShop = shopsByTags
-                .filterKeys { remainingTags.contains(it) }
-                .values.flatten()
+            val nearestShop = shopsByTags.filterKeys { remainingTags.contains(it) }.values.flatten()
                 .minByOrNull { currentPoint.distance(Point(it.longitude, it.latitude)) }
 
-            if (nearestShop != null) {
+            if (nearestShop is ShopTableDTO) {
                 // Update current location and remove the category from the set of remaining categories
                 currentPoint = Point(nearestShop.longitude, nearestShop.latitude)
                 tagsByShops[nearestShop]?.forEach {

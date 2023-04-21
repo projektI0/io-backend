@@ -2,11 +2,8 @@ package pl.edu.agh.path.route
 
 import arrow.core.continuations.either
 import arrow.core.right
-import io.ktor.server.application.Application
-import io.ktor.server.application.call
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
-import io.ktor.server.routing.routing
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.service.authenticate
@@ -15,6 +12,7 @@ import pl.edu.agh.path.domain.PathRequest
 import pl.edu.agh.path.domain.PathResponse
 import pl.edu.agh.path.service.PathService
 import pl.edu.agh.utils.LoggerDelegate
+import pl.edu.agh.utils.Transactor
 import pl.edu.agh.utils.Utils
 import pl.edu.agh.utils.Utils.responsePair
 
@@ -34,7 +32,9 @@ object PathRoutes {
                                 val pathRequest = Utils.getBody<PathRequest>(call).bind()
                                 val (_, _, userId) = getLoggedUser(call)
 
-                                pathService.findOptimalRoute(pathRequest, userId).right().bind()
+                                Transactor.dbQuery {
+                                    pathService.findOptimalRoute(pathRequest, userId)
+                                }.right().bind()
                             }.responsePair(PathResponse.serializer())
                         }
                     }
