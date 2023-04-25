@@ -10,7 +10,7 @@ services:
     environment:
       - PORT=5432
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - ./postgres_data/content:/var/lib/postgresql/data
       - ./dbscripts/:/docker-entrypoint-initdb.d/
@@ -23,5 +23,5 @@ services:
     environment:
       - IO_BACKEND_DOCKER=true
     ports:
-      - 8080:8080
+      - "8080:8080"
 

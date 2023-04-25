@@ -10,6 +10,7 @@ import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.shoppingList.dao.ShoppingListDao
 import pl.edu.agh.shoppingList.dao.ShoppingListProductDao
 import pl.edu.agh.shoppingList.domain.ShoppingListId
+import pl.edu.agh.shoppingList.domain.ShoppingListProductView
 import pl.edu.agh.shoppingList.domain.ShoppingListView
 import pl.edu.agh.shoppingList.domain.dto.ShoppingListDTO
 import pl.edu.agh.shoppingList.domain.dto.ShoppingListProductDTO
@@ -49,7 +50,7 @@ interface ShoppingListService {
     fun addProductToList(
         loginUserId: LoginUserId,
         shoppingListProductDTO: ShoppingListProductDTO
-    ): Effect<ListNotFoundError, Unit>
+    ): Effect<ListNotFoundError, ShoppingListProductView>
 
     fun removeProductFromList(
         userId: LoginUserId,
@@ -140,12 +141,14 @@ class ShoppingListServiceImpl : ShoppingListService {
     override fun addProductToList(
         loginUserId: LoginUserId,
         shoppingListProductDTO: ShoppingListProductDTO
-    ): Effect<ListNotFoundError, Unit> =
+    ): Effect<ListNotFoundError, ShoppingListProductView> =
         effect {
             Transactor.dbQuery {
                 secureGetShoppingList(loginUserId, shoppingListProductDTO.shoppingListId).bind()
-
                 ShoppingListProductDao.addProductToShoppingList(shoppingListProductDTO)
+                    .bind {
+                        ListNotFoundError(loginUserId, shoppingListProductDTO.shoppingListId)
+                    }
             }
         }
 

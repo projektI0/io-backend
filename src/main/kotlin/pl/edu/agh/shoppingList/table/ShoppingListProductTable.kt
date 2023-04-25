@@ -3,6 +3,7 @@ package pl.edu.agh.shoppingList.table
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.select
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.product.domain.productId
 import pl.edu.agh.product.table.ProductTable
@@ -24,7 +25,7 @@ object ShoppingListProductTable : Table("SHOPPING_LIST_PRODUCT") {
 
     fun toDomainView(it: ResultRow): ShoppingListProductView =
         ShoppingListProductView(
-            product = ProductTable.toDomainView(it),
+            product = ProductTable.toDomainView(ProductTable.select{ProductTable.id eq it[productId]}.first()),
             quantity = it[quantity]
         )
 }
