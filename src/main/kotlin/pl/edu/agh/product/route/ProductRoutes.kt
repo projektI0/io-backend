@@ -15,7 +15,6 @@ import pl.edu.agh.auth.service.authenticate
 import pl.edu.agh.auth.service.getLoggedUser
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.product.domain.dto.ProductTableDTO
-import pl.edu.agh.product.domain.request.ProductFilterRequest
 import pl.edu.agh.product.domain.request.ProductRequest
 import pl.edu.agh.product.service.ProductService
 import pl.edu.agh.utils.LoggerDelegate
@@ -26,7 +25,7 @@ import pl.edu.agh.utils.Utils.responsePair
 import pl.edu.agh.utils.Utils.toResponsePairLogging
 
 object ProductRoutes {
-    private const val DEFAULT_LIMIT_VALUE: Int = 100
+    private const val DEFAULT_LIMIT_VALUE: Int = 10
     private const val DEFAULT_OFFSET_VALUE: Long = 0
     private val logger by LoggerDelegate()
 
@@ -40,10 +39,13 @@ object ProductRoutes {
                         logger.info("getting filtered products")
                         handleOutput(call) {
                             either {
-                                val productFilterRequest = Utils.getBody<ProductFilterRequest>(call).bind()
+                                val query = Utils.getBody<String>(call).bind()
+                                val limit = call.parameters["limit"]?.toIntOrNull() ?: DEFAULT_LIMIT_VALUE
+                                val offset = call.parameters["offset"]?.toLongOrNull() ?: DEFAULT_OFFSET_VALUE
                                 val (_, _, userId) = getLoggedUser(call)
 
-                                productService.getFilteredProducts(productFilterRequest, userId).toResponsePairLogging()
+                                productService.getFilteredProducts(query, limit, offset, userId)
+                                    .toResponsePairLogging()
                                     .bind()
                             }.responsePair()
                         }

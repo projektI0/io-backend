@@ -9,15 +9,14 @@ import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.product.dao.ProductDao
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.product.domain.dto.ProductTableDTO
-import pl.edu.agh.product.domain.request.ProductFilterRequest
 import pl.edu.agh.product.domain.request.ProductRequest
 import pl.edu.agh.utils.DBQueryResponseWithCount
 import pl.edu.agh.utils.DomainException
 import pl.edu.agh.utils.Transactor
 
-class PaginationError(productFilterRequest: ProductFilterRequest) : DomainException(
+class PaginationError(productFilterQuery: String) : DomainException(
     HttpStatusCode.BadRequest,
-    "Something horribly wrong with $productFilterRequest",
+    "Something horribly wrong with $productFilterQuery",
     "Something went wrong while making pagination request"
 )
 
@@ -29,13 +28,26 @@ class ProductCreationError(name: String, userId: LoginUserId) :
     )
 
 class ProductNotFound(productId: ProductId, userId: LoginUserId) :
-    DomainException(HttpStatusCode.NotFound, "Product $productId not found for user $userId", "Product $productId not found for user $userId")
+    DomainException(
+        HttpStatusCode.NotFound,
+        "Product $productId not found for user $userId",
+        "Product $productId not found for user $userId"
+    )
 
 interface ProductService {
     fun getProduct(productId: ProductId, userId: LoginUserId): Effect<ProductNotFound, ProductTableDTO>
-    fun createProduct(productRequest: ProductRequest, userId: LoginUserId): Effect<ProductCreationError, ProductTableDTO>
+    fun createProduct(
+        productRequest: ProductRequest,
+        userId: LoginUserId
+    ): Effect<ProductCreationError, ProductTableDTO>
+
     suspend fun getAllProducts(limit: Int, offset: Long, userId: LoginUserId): List<ProductTableDTO>
-    fun getFilteredProducts(productFilterRequest: ProductFilterRequest, userId: LoginUserId): Effect<PaginationError, DBQueryResponseWithCount<ProductTableDTO>>
+    fun getFilteredProducts(
+        query: String,
+        limit: Int,
+        offset: Long,
+        userId: LoginUserId
+    ): Effect<PaginationError, DBQueryResponseWithCount<ProductTableDTO>>
 }
 
 class ProductServiceImpl : ProductService {
@@ -48,28 +60,39 @@ class ProductServiceImpl : ProductService {
                     }
             }
         }
+
     override suspend fun getAllProducts(limit: Int, offset: Long, userId: LoginUserId): List<ProductTableDTO> =
         Transactor.dbQuery {
             ProductDao.getAllProducts(limit, offset, userId)
         }
-    override fun getFilteredProducts(productFilterRequest: ProductFilterRequest, userId: LoginUserId): Effect<PaginationError, DBQueryResponseWithCount<ProductTableDTO>> =
+
+    override fun getFilteredProducts(
+        query: String,
+        limit: Int,
+        offset: Long,
+        userId: LoginUserId
+    ): Effect<PaginationError, DBQueryResponseWithCount<ProductTableDTO>> =
         effect {
             Either.conditionally(
-                test = productFilterRequest.limit <= 0 || productFilterRequest.offset < 0,
-                ifTrue = { PaginationError(productFilterRequest) },
+                test = limit <= 0 || offset < 0,
+                ifTrue = { PaginationError(query) },
                 ifFalse = {
                     Transactor.dbQuery {
                         ProductDao.getFilteredProducts(
-                            NonEmptyList.fromList(productFilterRequest.names),
-                            productFilterRequest.limit,
-                            productFilterRequest.offset,
+                            NonEmptyList.fromList(listOf(query)),
+                            limit,
+                            offset,
                             userId
                         )()
                     }
                 }
             ).swap().bind()
         }
-    override fun createProduct(productRequest: ProductRequest, userId: LoginUserId): Effect<ProductCreationError, ProductTableDTO> = effect {
+
+    override fun createProduct(
+        productRequest: ProductRequest,
+        userId: LoginUserId
+    ): Effect<ProductCreationError, ProductTableDTO> = effect {
         Transactor.dbQuery {
             ProductDao
                 .insertNewProduct(productRequest.name, productRequest.description, userId)

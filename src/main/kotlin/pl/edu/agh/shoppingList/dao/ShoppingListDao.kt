@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.update
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.shoppingList.domain.ShoppingListId
 import pl.edu.agh.shoppingList.domain.dto.ShoppingListDTO
+import pl.edu.agh.shoppingList.table.ShoppingListProductTable
 import pl.edu.agh.shoppingList.table.ShoppingListTable
 import pl.edu.agh.utils.LoggerDelegate
 
@@ -52,8 +53,8 @@ object ShoppingListDao {
 
     fun deleteShoppingList(id: ShoppingListId): Option<ShoppingListDTO> {
         val shoppingList = unsafeGetShoppingList(id)
-        ShoppingListTable
-            .deleteWhere { ShoppingListTable.id eq id }
+        ShoppingListProductTable.deleteWhere { (shoppingListId eq id) }
+        ShoppingListTable.deleteWhere { ShoppingListTable.id eq id }
         return shoppingList
     }
 

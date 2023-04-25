@@ -17,6 +17,7 @@ import pl.edu.agh.auth.service.authenticate
 import pl.edu.agh.auth.service.getLoggedUser
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.shoppingList.domain.ShoppingListId
+import pl.edu.agh.shoppingList.domain.ShoppingListProductView
 import pl.edu.agh.shoppingList.domain.ShoppingListView
 import pl.edu.agh.shoppingList.domain.dto.ShoppingListDTO
 import pl.edu.agh.shoppingList.domain.dto.ShoppingListProductDTO
@@ -124,7 +125,7 @@ object ShoppingListRoutes {
                                         loginUserId,
                                         shoppingListProductDTO
                                     ).toResponsePairLogging().bind()
-                                }.responsePair()
+                                }.responsePair(ShoppingListProductView.serializer())
                             }
                         }
                         put("/{id}") {
