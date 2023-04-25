@@ -12,11 +12,10 @@ Backend repository from IO 2023 class at AGH UST.
 ### Definition Of Done
 
 <li>Implemented</li>
-<li>Tested</li>
 <li>Reviewed</li>
 <li>Meets Acceptance Criteria</li>
 <li>Merged to development branch (with rebase)</li>
-<li>Presented to client (if possible)</li>
+<li>Discussed with PO</li>
 
 ## Requirements
 
