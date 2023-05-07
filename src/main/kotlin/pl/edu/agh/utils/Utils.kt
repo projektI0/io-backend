@@ -1,15 +1,20 @@
 package pl.edu.agh.utils
 
-import arrow.core.*
+import arrow.core.Either
+import arrow.core.Option
 import arrow.core.continuations.Effect
 import arrow.core.continuations.option
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
-import io.ktor.util.reflect.*
-import io.ktor.websocket.*
+import arrow.core.left
+import arrow.core.right
+import arrow.core.toOption
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.Parameters
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.KSerializer
 
 object Utils {
