@@ -147,7 +147,6 @@ class ShoppingListServiceImpl : ShoppingListService {
                 secureGetShoppingList(loginUserId, shoppingListProductDTO.shoppingListId).bind()
                 ShoppingListProductDao.addProductToShoppingList(shoppingListProductDTO)
                     .bind {
-                        //todo return better Error
                         ListNotFoundError(loginUserId, shoppingListProductDTO.shoppingListId)
                     }
             }

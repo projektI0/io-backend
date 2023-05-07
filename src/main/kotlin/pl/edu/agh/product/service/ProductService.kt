@@ -14,9 +14,9 @@ import pl.edu.agh.utils.DBQueryResponseWithCount
 import pl.edu.agh.utils.DomainException
 import pl.edu.agh.utils.Transactor
 
-class PaginationError(productFilterQuery: String) : DomainException(
+class PaginationError(limit: Int, offset: Long) : DomainException(
     HttpStatusCode.BadRequest,
-    "Something horribly wrong with $productFilterQuery",
+    "Something horribly wrong with searching products: limit - $limit, offset - $offset",
     "Something went wrong while making pagination request"
 )
 
@@ -75,7 +75,7 @@ class ProductServiceImpl : ProductService {
         effect {
             Either.conditionally(
                 test = limit <= 0 || offset < 0,
-                ifTrue = { PaginationError(query) },
+                ifTrue = { PaginationError(limit, offset) },
                 ifFalse = {
                     Transactor.dbQuery {
                         ProductDao.getFilteredProducts(

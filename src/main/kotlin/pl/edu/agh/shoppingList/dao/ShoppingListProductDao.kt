@@ -27,7 +27,7 @@ object ShoppingListProductDao {
     }
 
     fun addProductToShoppingList(shoppingListProduct: ShoppingListProductDTO): Option<ShoppingListProductView> {
-        logger.info("Adding product ${shoppingListProduct.productId} to shopping list ${shoppingListProduct.shoppingListId}")
+        logger.info("Adding product shopping list product to shopping list $shoppingListProduct")
         ShoppingListProductTable.insert {
             it[shoppingListId] = shoppingListProduct.shoppingListId
             it[productId] = shoppingListProduct.productId
