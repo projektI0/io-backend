@@ -1,11 +1,13 @@
 package pl.edu.agh.auth.route
 
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.routing.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
 import org.koin.ktor.ext.inject
-import pl.edu.agh.auth.domain.LoginUserBasicData
-import pl.edu.agh.auth.domain.LoginUserData
+import pl.edu.agh.auth.domain.LoginUserResponse
+import pl.edu.agh.auth.domain.request.LoginUserRequest
 import pl.edu.agh.auth.service.AuthService
 import pl.edu.agh.utils.LoggerDelegate
 import pl.edu.agh.utils.Transactor
@@ -22,11 +24,11 @@ object AuthRoutes {
             post("/register") {
                 handleOutput(call) {
                     Transactor.dbQuery {
-                        val userData = call.receive<LoginUserBasicData>()
+                        val userData = call.receive<LoginUserRequest>()
                         val signedUserResponse = authService.signUpNewUser(userData)
                         signedUserResponse.mapLeft {
                             it.toResponsePairLogging()
-                        }.responsePair(LoginUserData.serializer())
+                        }.responsePair(LoginUserResponse.serializer())
                     }
                 }
             }
@@ -34,15 +36,14 @@ object AuthRoutes {
             post("/login") {
                 handleOutput(call) {
                     Transactor.dbQuery {
-                        val userData = call.receive<LoginUserBasicData>()
+                        val userData = call.receive<LoginUserRequest>()
                         val signedUserResponse = authService.signInUser(userData)
                         signedUserResponse.mapLeft {
                             it.toResponsePairLogging()
-                        }.responsePair(LoginUserData.serializer())
+                        }.responsePair(LoginUserResponse.serializer())
                     }
                 }
             }
         }
     }
-
 }

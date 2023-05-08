@@ -1,6 +1,7 @@
-package pl.edu.agh.shop.domain
+package pl.edu.agh.shop.domain.dto
 
 import kotlinx.serialization.Serializable
+import pl.edu.agh.shop.domain.ShopId
 
 @Serializable
 data class ShopTableDTO(

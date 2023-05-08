@@ -4,8 +4,8 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.ResultRow
-import pl.edu.agh.auth.domain.LoginUserDTO
 import pl.edu.agh.auth.domain.LoginUserId
+import pl.edu.agh.auth.domain.dto.LoginUserDTO
 import pl.edu.agh.auth.domain.loginUserId
 
 object UserTable : IdTable<LoginUserId>("LOGIN_USER") {
@@ -15,7 +15,7 @@ object UserTable : IdTable<LoginUserId>("LOGIN_USER") {
 
     fun toDomain(it: ResultRow): LoginUserDTO =
         LoginUserDTO(
-            id = it[id].value, email = it[email]
+            id = it[id].value,
+            email = it[email]
         )
 }
-

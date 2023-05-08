@@ -6,22 +6,21 @@ import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.select
-import pl.edu.agh.auth.domain.LoginUserBasicData
-import pl.edu.agh.auth.domain.LoginUserDTO
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.auth.domain.Roles
+import pl.edu.agh.auth.domain.dto.LoginUserDTO
+import pl.edu.agh.auth.domain.request.LoginUserRequest
 import pl.edu.agh.auth.table.RoleTable
 import pl.edu.agh.auth.table.UserRolesTable
 import pl.edu.agh.auth.table.UserTable
 
 object UserDao {
 
-    fun insertNewUser(loginUserBasicData: LoginUserBasicData): LoginUserId =
+    fun insertNewUser(loginUserRequest: LoginUserRequest): LoginUserId =
         UserTable.insertAndGetId {
-            it[email] = loginUserBasicData.email
-            it[password] = loginUserBasicData.password
+            it[email] = loginUserRequest.email
+            it[password] = loginUserRequest.password
         }.value
-
 
     fun findUserByEmail(email: String): Option<LoginUserDTO> =
         UserTable
@@ -34,7 +33,6 @@ object UserDao {
             .select { UserTable.email eq email and (UserTable.password eq password) }
             .singleOrNone()
             .map { UserTable.toDomain(it) }
-
 
     fun getUserRoles(userId: LoginUserId): List<Roles> =
         RoleTable

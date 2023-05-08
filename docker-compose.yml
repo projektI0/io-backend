@@ -1,16 +1,27 @@
 version: '3.5'
 
 services:
-  iodb:
-    container_name: iodb
+  io-database:
+    container_name: io-database
     image: postgres:12.2
     restart: on-failure
     env_file:
       - 'content_var.env'
     environment:
-      PORT: 5432
+      - PORT=5432
     ports:
       - 5432:5432
     volumes:
       - ./postgres_data/content:/var/lib/postgresql/data
       - ./dbscripts/:/docker-entrypoint-initdb.d/
+  io-server:
+    container_name: io-server
+    build: .
+    depends_on:
+      - io-database
+    restart: on-failure
+    environment:
+      - IO_BACKEND_DOCKER=true
+    ports:
+      - 8080:8080
+

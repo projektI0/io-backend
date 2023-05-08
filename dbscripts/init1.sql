@@ -31,8 +31,11 @@ create table TAG (
 create table PRODUCT (
     ID serial primary key,
     NAME varchar not null,
-    DESCRIPTION varchar not null
+    DESCRIPTION varchar not null,
+    GENERATED_BY_USER_ID int null
 );
+
+alter table PRODUCT add constraint PRODUCT_LOGIN_USER_ID_FK foreign key (GENERATED_BY_USER_ID) references LOGIN_USER(ID);
 
 create table PRODUCT_TAG (
     PRODUCT_ID int not null,
@@ -47,8 +50,11 @@ create table SHOP (
     NAME varchar not null,
     LONGITUDE double precision not null,
     LATITUDE double precision not null,
-    ADDRESS varchar not null
+    ADDRESS varchar not null,
+    GENERATED_BY_USER_ID int null
 );
+
+alter table SHOP add constraint SHOP_LOGIN_USER_ID_FK foreign key (GENERATED_BY_USER_ID) references LOGIN_USER(ID);
 
 create table SHOP_TAG (
     SHOP_ID int not null,

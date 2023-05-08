@@ -21,7 +21,7 @@ abstract class GenericIntIdFactory<T : GenericIntId<T>> {
     abstract fun create(id: Int): T
 }
 
-abstract class GenericIntIdSerializer<T : GenericIntId<T>>(private val factory: GenericIntIdFactory<T>) :
+abstract class GenericIntIdSerializer<T : GenericIntId<T>>(val factory: GenericIntIdFactory<T>) :
     KSerializer<T> {
 
     override fun deserialize(decoder: Decoder): T = factory.create(decoder.decodeInt())
@@ -31,7 +31,7 @@ abstract class GenericIntIdSerializer<T : GenericIntId<T>>(private val factory: 
     }
 }
 
-class GenericIntIdColumnType<T : GenericIntId<T>>(private val factory: GenericIntIdFactory<T>) : ColumnType() {
+internal class GenericIntIdColumnType<T : GenericIntId<T>>(val factory: GenericIntIdFactory<T>) : ColumnType() {
     override var nullable: Boolean = false
 
     override fun sqlType(): String = IntegerColumnType().sqlType()
@@ -51,7 +51,6 @@ class GenericIntIdColumnType<T : GenericIntId<T>>(private val factory: GenericIn
         }
         return null
     }
-
 }
 
 fun <T : GenericIntId<T>> Table.genericIntId(factory: GenericIntIdFactory<T>): (String) -> Column<T> = {

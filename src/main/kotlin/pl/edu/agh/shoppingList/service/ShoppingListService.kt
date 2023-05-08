@@ -4,12 +4,15 @@ import arrow.core.Either
 import arrow.core.continuations.Effect
 import arrow.core.continuations.effect
 import arrow.core.continuations.either
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.shoppingList.dao.ShoppingListDao
 import pl.edu.agh.shoppingList.dao.ShoppingListProductDao
-import pl.edu.agh.shoppingList.domain.*
+import pl.edu.agh.shoppingList.domain.ShoppingListId
+import pl.edu.agh.shoppingList.domain.ShoppingListView
+import pl.edu.agh.shoppingList.domain.dto.ShoppingListDTO
+import pl.edu.agh.shoppingList.domain.dto.ShoppingListProductDTO
 import pl.edu.agh.utils.DomainException
 import pl.edu.agh.utils.Transactor
 
@@ -24,17 +27,28 @@ class ListNotFoundError(userId: LoginUserId, listId: ShoppingListId) :
     DomainException(HttpStatusCode.BadRequest, "List $listId not found for user $userId", "List $listId not found")
 
 interface ShoppingListService {
-    fun createShoppingList(userId: LoginUserId, name: String): Effect<ShoppingListCreationError, ShoppingList>
-    fun getShoppingList(userId: LoginUserId, id: ShoppingListId): Effect<ListNotFoundError, ShoppingList>
-    fun deleteShoppingList(userId: LoginUserId, id: ShoppingListId): Effect<ListNotFoundError, ShoppingList>
-    suspend fun getAllShoppingListsByUserId(userId: LoginUserId): List<ShoppingList>
+    fun createShoppingList(
+        userId: LoginUserId,
+        name: String
+    ): Effect<ShoppingListCreationError, ShoppingListDTO>
+
+    fun getShoppingList(userId: LoginUserId, id: ShoppingListId): Effect<ListNotFoundError, ShoppingListDTO>
+    fun deleteShoppingList(userId: LoginUserId, id: ShoppingListId): Effect<ListNotFoundError, ShoppingListDTO>
+    suspend fun getAllShoppingListsByUserId(
+        limit: Int,
+        offset: Long,
+        userId: LoginUserId
+    ): List<ShoppingListDTO>
+
     fun updateShoppingList(
-        userId: LoginUserId, id: ShoppingListId, name: String
-    ): Effect<ListNotFoundError, ShoppingList>
+        userId: LoginUserId,
+        id: ShoppingListId,
+        name: String
+    ): Effect<ListNotFoundError, ShoppingListDTO>
 
     fun addProductToList(
         loginUserId: LoginUserId,
-        shoppingListProduct: ShoppingListProduct
+        shoppingListProductDTO: ShoppingListProductDTO
     ): Effect<ListNotFoundError, Unit>
 
     fun removeProductFromList(
@@ -45,21 +59,21 @@ interface ShoppingListService {
 
     fun updateProductQuantity(
         userId: LoginUserId,
-        shoppingListProduct: ShoppingListProduct
+        shoppingListProductDTO: ShoppingListProductDTO
     ): Effect<ListNotFoundError, Unit>
 
-    suspend fun getAllShoppingListProducts(id: ShoppingListId): List<ShoppingListProduct>
+    suspend fun getAllShoppingListProducts(id: ShoppingListId): List<ShoppingListProductDTO>
     fun getShoppingListView(loginUserId: LoginUserId, id: ShoppingListId): Effect<ListNotFoundError, ShoppingListView>
 }
 
 class ShoppingListServiceImpl : ShoppingListService {
     override fun createShoppingList(
-        userId: LoginUserId, name: String
-    ): Effect<ShoppingListCreationError, ShoppingList> = effect {
-        val shoppingListInput = ShoppingListInput(userId, name)
+        userId: LoginUserId,
+        name: String
+    ): Effect<ShoppingListCreationError, ShoppingListDTO> = effect {
         Transactor.dbQuery {
             ShoppingListDao
-                .createShoppingList(shoppingListInput)
+                .createShoppingList(userId, name)
                 .bind {
                     ShoppingListCreationError(userId, name)
                 }
@@ -70,7 +84,7 @@ class ShoppingListServiceImpl : ShoppingListService {
     private suspend fun secureGetShoppingList(
         userId: LoginUserId,
         id: ShoppingListId
-    ): Either<ListNotFoundError, ShoppingList> = either {
+    ): Either<ListNotFoundError, ShoppingListDTO> = either {
         ShoppingListDao
             .secureGetShoppingList(userId, id)
             .bind {
@@ -81,14 +95,17 @@ class ShoppingListServiceImpl : ShoppingListService {
     override fun getShoppingList(
         userId: LoginUserId,
         id: ShoppingListId
-    ): Effect<ListNotFoundError, ShoppingList> =
+    ): Effect<ListNotFoundError, ShoppingListDTO> =
         effect {
             Transactor.dbQuery {
                 secureGetShoppingList(userId, id).bind()
             }
         }
 
-    override fun deleteShoppingList(userId: LoginUserId, id: ShoppingListId): Effect<ListNotFoundError, ShoppingList> =
+    override fun deleteShoppingList(
+        userId: LoginUserId,
+        id: ShoppingListId
+    ): Effect<ListNotFoundError, ShoppingListDTO> =
         effect {
             Transactor.dbQuery {
                 ShoppingListDao
@@ -99,18 +116,21 @@ class ShoppingListServiceImpl : ShoppingListService {
             }
         }
 
-    override suspend fun getAllShoppingListsByUserId(userId: LoginUserId): List<ShoppingList> =
-        Transactor.dbQuery { ShoppingListDao.getAllShoppingListsByUserId(userId) }
+    override suspend fun getAllShoppingListsByUserId(
+        limit: Int,
+        offset: Long,
+        userId: LoginUserId
+    ): List<ShoppingListDTO> =
+        Transactor.dbQuery { ShoppingListDao.getAllShoppingListsByUserId(limit, offset, userId) }
 
     override fun updateShoppingList(
         userId: LoginUserId,
         id: ShoppingListId,
         name: String
-    ): Effect<ListNotFoundError, ShoppingList> = effect {
-        val shoppingListInput = ShoppingListInput(userId, name)
+    ): Effect<ListNotFoundError, ShoppingListDTO> = effect {
         Transactor.dbQuery {
             ShoppingListDao
-                .updateShoppingList(id, shoppingListInput)
+                .updateShoppingList(id, name, userId)
                 .bind {
                     ListNotFoundError(userId, id)
                 }
@@ -119,13 +139,13 @@ class ShoppingListServiceImpl : ShoppingListService {
 
     override fun addProductToList(
         loginUserId: LoginUserId,
-        shoppingListProduct: ShoppingListProduct
+        shoppingListProductDTO: ShoppingListProductDTO
     ): Effect<ListNotFoundError, Unit> =
         effect {
             Transactor.dbQuery {
-                secureGetShoppingList(loginUserId, shoppingListProduct.shoppingListId).bind()
+                secureGetShoppingList(loginUserId, shoppingListProductDTO.shoppingListId).bind()
 
-                ShoppingListProductDao.addProductToShoppingList(shoppingListProduct)
+                ShoppingListProductDao.addProductToShoppingList(shoppingListProductDTO)
             }
         }
 
@@ -141,19 +161,18 @@ class ShoppingListServiceImpl : ShoppingListService {
         }
     }
 
-
     override fun updateProductQuantity(
         userId: LoginUserId,
-        shoppingListProduct: ShoppingListProduct
+        shoppingListProductDTO: ShoppingListProductDTO
     ): Effect<ListNotFoundError, Unit> = effect {
         Transactor.dbQuery {
-            secureGetShoppingList(userId, shoppingListProduct.shoppingListId).bind()
+            secureGetShoppingList(userId, shoppingListProductDTO.shoppingListId).bind()
 
-            ShoppingListProductDao.updateProductInShoppingList(shoppingListProduct)
+            ShoppingListProductDao.updateProductInShoppingList(shoppingListProductDTO)
         }
     }
 
-    override suspend fun getAllShoppingListProducts(id: ShoppingListId): List<ShoppingListProduct> =
+    override suspend fun getAllShoppingListProducts(id: ShoppingListId): List<ShoppingListProductDTO> =
         Transactor.dbQuery {
             ShoppingListProductDao.getAllShoppingListProducts(id)
         }

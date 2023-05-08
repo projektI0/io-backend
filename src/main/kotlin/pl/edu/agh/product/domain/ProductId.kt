@@ -1,5 +1,6 @@
 package pl.edu.agh.product.domain
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.encoding.Decoder
@@ -14,10 +15,11 @@ import pl.edu.agh.utils.genericIntId
 @Serializable(ProductIdSerializer::class)
 data class ProductId(override val id: Int) : GenericIntId<ProductId>()
 
-private object ProductIdFactory : GenericIntIdFactory<ProductId>() {
+object ProductIdFactory : GenericIntIdFactory<ProductId>() {
     override fun create(id: Int): ProductId = ProductId(id)
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializer(forClass = ProductId::class)
 object ProductIdSerializer : GenericIntIdSerializer<ProductId>(ProductIdFactory) {
 
