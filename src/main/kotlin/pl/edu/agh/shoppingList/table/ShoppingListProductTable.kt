@@ -25,7 +25,7 @@ object ShoppingListProductTable : Table("SHOPPING_LIST_PRODUCT") {
 
     fun toDomainView(it: ResultRow): ShoppingListProductView =
         ShoppingListProductView(
-            product = ProductTable.toDomainView(ProductTable.select{ProductTable.id eq it[productId]}.first()),
+            product = ProductTable.toDomainView(ProductTable.select { ProductTable.id eq it[productId] }.first()),
             quantity = it[quantity]
         )
 }

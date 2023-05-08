@@ -6,7 +6,6 @@ import pl.edu.agh.path.domain.PathRequest
 import pl.edu.agh.path.domain.PathResponse
 import pl.edu.agh.shop.dao.ShopDao
 import pl.edu.agh.shop.domain.dto.ShopTableDTO
-import pl.edu.agh.shoppingList.dao.ShoppingListProductDao
 import kotlin.math.sqrt
 
 class Point(private val x: Double, private val y: Double) {
@@ -18,22 +17,19 @@ class Point(private val x: Double, private val y: Double) {
 }
 
 interface PathService {
-    suspend fun findOptimalRoute(
-        pathRequest: PathRequest, userId: LoginUserId
-    ): PathResponse
+    suspend fun findOptimalRoute(pathRequest: PathRequest, userId: LoginUserId): PathResponse
 }
 
 class PathServiceImpl : PathService {
     override suspend fun findOptimalRoute(pathRequest: PathRequest, userId: LoginUserId): PathResponse {
         val shoppingListId = pathRequest.shoppingListId
-        val products = ShoppingListProductDao.getAllShoppingListProducts(shoppingListId)
         val startX = pathRequest.longitude
         val startY = pathRequest.latitude
         val shopsIds =
             ShopDao.getAllShopsWithinBounds(startY - 5, startX - 5, startY + 5, startX + 5, userId).map { it.id }
                 .toSet()
         // Create a set of all categories we need to buy
-        val remainingTags = PathDao.getTagsForProducts(products)
+        val remainingTags = PathDao.getAllTopTagsForList(shoppingListId)
 
         // Create a map of the shops by tags
         val shopsByTags = PathDao.getShopsForTags(shopsIds, remainingTags)
