@@ -35,7 +35,7 @@ object ShoppingListProductDao {
         }
         return ShoppingListProductTable.select {
             (ShoppingListProductTable.shoppingListId eq shoppingListProduct.shoppingListId) and
-                    (ShoppingListProductTable.productId eq shoppingListProduct.productId)
+                (ShoppingListProductTable.productId eq shoppingListProduct.productId)
         }.firstOrNone().map { ShoppingListProductTable.toDomainView(it) }
     }
 

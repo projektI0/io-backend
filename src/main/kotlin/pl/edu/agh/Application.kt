@@ -1,10 +1,11 @@
 package pl.edu.agh
 
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
+import io.ktor.http.HttpMethod
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
@@ -21,7 +22,9 @@ import pl.edu.agh.shop.ShopModule.getKoinShopModule
 import pl.edu.agh.shop.route.ShopRoutes.configureShopRoutes
 import pl.edu.agh.shoppingList.ShoppingListModule.getKoinShoppingListModule
 import pl.edu.agh.shoppingList.route.ShoppingListRoutes.configureShoppingListRoutes
-import pl.edu.agh.utils.*
+import pl.edu.agh.tag.TagModule.getKoinTagModule
+import pl.edu.agh.tag.route.TagRoutes.configureTagRoutes
+import pl.edu.agh.utils.DBQueryResponseWithCount
 import pl.edu.agh.utils.DatabaseConnector.initDB
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -34,7 +37,8 @@ fun Application.module() {
                 ignoreUnknownKeys = true
                 isLenient = true
                 encodeDefaults = true
-                serializersModule = SerializersModule { contextual(DBQueryResponseWithCount.serializer(ProductTableDTO.serializer())) }
+                serializersModule =
+                    SerializersModule { contextual(DBQueryResponseWithCount.serializer(ProductTableDTO.serializer())) }
             }
         )
     }
@@ -50,12 +54,20 @@ fun Application.module() {
     }
     initDB()
     install(Koin) {
-        modules(getKoinAuthModule(), getKoinShoppingListModule(), getKoinProductModule(), getKoinShopModule(), getKoinPathModule())
+        modules(
+            getKoinAuthModule(),
+            getKoinShoppingListModule(),
+            getKoinProductModule(),
+            getKoinShopModule(),
+            getKoinPathModule(),
+            getKoinTagModule()
+        )
     }
     configureSecurity()
     configureAuthRoutes()
     configureShoppingListRoutes()
     configureProductRoutes()
+    configureTagRoutes()
     configureShopRoutes()
     configurePathRoutes()
 }

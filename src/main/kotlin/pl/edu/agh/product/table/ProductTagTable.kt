@@ -10,4 +10,5 @@ import pl.edu.agh.tag.domain.tagId
 object ProductTagTable : Table("PRODUCT_TAG") {
     val productId: Column<ProductId> = productId("PRODUCT_ID")
     val tagId: Column<TagId> = tagId("TAG_ID")
+    val mainTagId: Column<TagId> = tagId("MAIN_TAG_ID")
 }
