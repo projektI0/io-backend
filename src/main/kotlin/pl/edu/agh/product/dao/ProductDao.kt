@@ -1,10 +1,10 @@
 package pl.edu.agh.product.dao
 
-import arrow.core.NonEmptyList
 import arrow.core.Option
 import arrow.core.firstOrNone
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
 import org.jetbrains.exposed.sql.Transaction
@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.select
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.product.domain.dto.ProductTableDTO
+import pl.edu.agh.product.domain.request.ProductFilterRequest
 import pl.edu.agh.product.table.ProductTable
 import pl.edu.agh.product.table.ProductTagTable
 import pl.edu.agh.utils.DBQueryResponseWithCount
@@ -33,39 +34,53 @@ object ProductDao {
             .map { ProductTable.toDomain(it) }
 
     fun getFilteredProducts(
-        productNames: Option<NonEmptyList<String>>,
+        request: ProductFilterRequest,
         limit: Int,
         offset: Long,
         userId: LoginUserId
     ): Transaction.() -> DBQueryResponseWithCount<ProductTableDTO> = {
-        productNames.fold(
-            ifEmpty = {
-                val mainQuery = ProductTable.select {
-                    userIdCondition(userId)
-                }
-
-                val data = mainQuery
-                    .limit(limit, offset)
-                    .map { ProductTable.toDomain(it) }
-                val count = mainQuery.count()
-
-                DBQueryResponseWithCount(data, count)
-            },
-            ifSome = { names ->
-                val mainQuery =
-                    ProductTable.join(ProductTagTable, JoinType.LEFT, ProductTable.id, ProductTagTable.productId)
-                        .select {
-                            userIdCondition(userId) and ProductTable.ts.selectTS(names)
-                        }
-
-                val count = mainQuery.count()
-                val data = mainQuery
-                    .limit(limit, offset)
-                    .map { ProductTable.toDomain(it) }
-
-                DBQueryResponseWithCount(data, count)
+        if (request.query == "") {
+            val mainQuery: Query = if (request.tags.isEmpty()) {
+                ProductTable.join(ProductTagTable, JoinType.INNER, ProductTable.id, ProductTagTable.productId)
+                    .select {
+                        userIdCondition(userId)
+                    }
+            } else {
+                ProductTable.join(ProductTagTable, JoinType.INNER, ProductTable.id, ProductTagTable.productId)
+                    .select {
+                        userIdCondition(userId) and ProductTagTable.tagId.inList(request.tags)
+                    }
             }
-        )
+
+            val data = mainQuery
+                .limit(limit, offset)
+                .map { ProductTable.toDomain(it) }
+            val count = mainQuery.count()
+
+            DBQueryResponseWithCount(data, count)
+        } else {
+            val mainQuery: Query = if (request.tags.isEmpty()) {
+                ProductTable.join(ProductTagTable, JoinType.LEFT, ProductTable.id, ProductTagTable.productId)
+                    .select {
+                        userIdCondition(userId) and ProductTable.ts.selectTS(listOf(request.query))
+                    }
+            } else {
+                ProductTable.join(ProductTagTable, JoinType.LEFT, ProductTable.id, ProductTagTable.productId)
+                    .select {
+                        userIdCondition(userId) and ProductTable.ts.selectTS(listOf(request.query)) and ProductTagTable.tagId.inList(
+                            request.tags
+                        )
+                    }
+            }
+
+            val count = mainQuery.count()
+            val data = mainQuery
+                .limit(limit, offset)
+                .map { ProductTable.toDomain(it) }
+
+            DBQueryResponseWithCount(data, count)
+        }
+
     }
 
     fun getProduct(id: ProductId, userId: LoginUserId): Option<ProductTableDTO> =
