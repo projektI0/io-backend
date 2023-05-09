@@ -1,7 +1,6 @@
 package pl.edu.agh.product.service
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.continuations.Effect
 import arrow.core.continuations.effect
 import io.ktor.http.HttpStatusCode
@@ -9,6 +8,7 @@ import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.product.dao.ProductDao
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.product.domain.dto.ProductTableDTO
+import pl.edu.agh.product.domain.request.ProductFilterRequest
 import pl.edu.agh.product.domain.request.ProductRequest
 import pl.edu.agh.utils.DBQueryResponseWithCount
 import pl.edu.agh.utils.DomainException
@@ -43,7 +43,7 @@ interface ProductService {
 
     suspend fun getAllProducts(limit: Int, offset: Long, userId: LoginUserId): List<ProductTableDTO>
     fun getFilteredProducts(
-        query: String,
+        request: ProductFilterRequest,
         limit: Int,
         offset: Long,
         userId: LoginUserId
@@ -67,7 +67,7 @@ class ProductServiceImpl : ProductService {
         }
 
     override fun getFilteredProducts(
-        query: String,
+        request: ProductFilterRequest,
         limit: Int,
         offset: Long,
         userId: LoginUserId
@@ -79,7 +79,7 @@ class ProductServiceImpl : ProductService {
                 ifFalse = {
                     Transactor.dbQuery {
                         ProductDao.getFilteredProducts(
-                            NonEmptyList.fromList(listOf(query)),
+                            request,
                             limit,
                             offset,
                             userId
