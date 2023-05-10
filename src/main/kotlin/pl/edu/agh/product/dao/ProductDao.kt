@@ -4,8 +4,8 @@ import arrow.core.Option
 import arrow.core.firstOrNone
 import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
@@ -39,48 +39,26 @@ object ProductDao {
         offset: Long,
         userId: LoginUserId
     ): Transaction.() -> DBQueryResponseWithCount<ProductTableDTO> = {
-        if (request.query == "") {
-            val mainQuery: Query = if (request.tags.isEmpty()) {
-                ProductTable.join(ProductTagTable, JoinType.INNER, ProductTable.id, ProductTagTable.productId)
-                    .select {
-                        userIdCondition(userId)
-                    }
-            } else {
-                ProductTable.join(ProductTagTable, JoinType.INNER, ProductTable.id, ProductTagTable.productId)
-                    .select {
-                        userIdCondition(userId) and ProductTagTable.tagId.inList(request.tags)
-                    }
-            }
-
-            val data = mainQuery
-                .limit(limit, offset)
-                .map { ProductTable.toDomain(it) }
-            val count = mainQuery.count()
-
-            DBQueryResponseWithCount(data, count)
-        } else {
-            val mainQuery: Query = if (request.tags.isEmpty()) {
-                ProductTable.join(ProductTagTable, JoinType.LEFT, ProductTable.id, ProductTagTable.productId)
-                    .select {
-                        userIdCondition(userId) and ProductTable.ts.selectTS(listOf(request.query))
-                    }
-            } else {
-                ProductTable.join(ProductTagTable, JoinType.LEFT, ProductTable.id, ProductTagTable.productId)
-                    .select {
-                        userIdCondition(userId) and ProductTable.ts.selectTS(listOf(request.query)) and ProductTagTable.tagId.inList(
-                            request.tags
-                        )
-                    }
-            }
-
-            val count = mainQuery.count()
-            val data = mainQuery
-                .limit(limit, offset)
-                .map { ProductTable.toDomain(it) }
-
-            DBQueryResponseWithCount(data, count)
+        val queryCondition = when (request.query) {
+            "" -> Op.nullOp<Boolean>().isNull()
+            else -> Op.build { ProductTable.ts.selectTS(listOf(request.query)) }
         }
+        val tagsCondition = when {
+            request.tags.isEmpty() -> Op.nullOp<Boolean>().isNull()
+            else -> ProductTagTable.tagId.inList(request.tags)
+        }
+        val mainQuery = ProductTable.join(ProductTagTable, JoinType.INNER, ProductTable.id, ProductTagTable.productId)
+            .slice(ProductTable.columns)
+            .select {
+                userIdCondition(userId) and tagsCondition and queryCondition
+            }.withDistinct(true)
 
+        val data = mainQuery
+            .limit(limit, offset)
+            .map { ProductTable.toDomain(it) }
+        val count = mainQuery.count()
+
+        DBQueryResponseWithCount(data, count)
     }
 
     fun getProduct(id: ProductId, userId: LoginUserId): Option<ProductTableDTO> =
