@@ -7,4 +7,4 @@ import pl.edu.agh.product.domain.dto.ProductTagTableDTO
  * Single product on shopping list with its quantity
  */
 @Serializable
-data class ShoppingListProductView(val product: ProductTagTableDTO, val quantity: Double)
+data class ShoppingListProductView(val product: ProductTagTableDTO, val quantity: Double, val crossedOut: Boolean)

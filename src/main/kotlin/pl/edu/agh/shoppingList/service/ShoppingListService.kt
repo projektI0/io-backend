@@ -58,7 +58,7 @@ interface ShoppingListService {
         productId: ProductId
     ): Effect<ListNotFoundError, Unit>
 
-    fun updateProductQuantity(
+    fun updateProductInList(
         userId: LoginUserId,
         shoppingListProductDTO: ShoppingListProductDTO
     ): Effect<ListNotFoundError, Unit>
@@ -164,7 +164,7 @@ class ShoppingListServiceImpl : ShoppingListService {
         }
     }
 
-    override fun updateProductQuantity(
+    override fun updateProductInList(
         userId: LoginUserId,
         shoppingListProductDTO: ShoppingListProductDTO
     ): Effect<ListNotFoundError, Unit> = effect {

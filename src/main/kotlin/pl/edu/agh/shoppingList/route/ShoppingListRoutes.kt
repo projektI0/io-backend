@@ -133,12 +133,12 @@ object ShoppingListRoutes {
                                 either {
                                     val shoppingListId = getParam("listId") { ShoppingListId(it) }.bind()
                                     val shoppingListProductId = getParam("id") { ProductId(it) }.bind()
-                                    val quantity = getBody<String>(call).bind()
+                                    val shoppingListProductDTO = getBody<ShoppingListProductDTO>(call).bind()
                                     val (_, _, loginUserId) = getLoggedUser(call)
 
-                                    shoppingListService.updateProductQuantity(
+                                    shoppingListService.updateProductInList(
                                         loginUserId,
-                                        ShoppingListProductDTO(shoppingListId, shoppingListProductId, quantity.toDouble())
+                                        shoppingListProductDTO
                                     ).toResponsePairLogging().bind()
                                 }.responsePair()
                             }
