@@ -68,10 +68,7 @@ class ShopServiceImpl : ShopService {
         Transactor.dbQuery {
             ShopDao
                 .insertNewShop(
-                    shopRequest.name,
-                    shopRequest.longitude,
-                    shopRequest.latitude,
-                    shopRequest.address,
+                    shopRequest,
                     userId
                 )
                 .bind {

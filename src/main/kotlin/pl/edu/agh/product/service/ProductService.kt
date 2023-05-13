@@ -95,7 +95,7 @@ class ProductServiceImpl : ProductService {
     ): Effect<ProductCreationError, ProductTableDTO> = effect {
         Transactor.dbQuery {
             ProductDao
-                .insertNewProduct(productRequest.name, productRequest.description, userId)
+                .insertNewProduct(productRequest, userId)
                 .bind {
                     ProductCreationError(productRequest.name, userId)
                 }

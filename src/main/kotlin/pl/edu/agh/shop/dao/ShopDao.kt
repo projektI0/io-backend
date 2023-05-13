@@ -6,13 +6,17 @@ import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.select
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.shop.domain.ShopId
 import pl.edu.agh.shop.domain.dto.ShopTableDTO
+import pl.edu.agh.shop.domain.request.ShopRequest
 import pl.edu.agh.shop.table.ShopTable
+import pl.edu.agh.shop.table.ShopTagTable
+import pl.edu.agh.tag.table.TagTable
 import pl.edu.agh.utils.LoggerDelegate
 import pl.edu.agh.utils.Transactor
 
@@ -56,22 +60,28 @@ object ShopDao {
             .map { ShopTable.toDomain(it) }
 
     fun insertNewShop(
-        name: String,
-        longitude: Double,
-        latitude: Double,
-        address: String,
+        shopRequest: ShopRequest,
         userId: LoginUserId
     ): Option<ShopTableDTO> {
-        logger.info("Adding new shop: $name")
+        logger.info("Adding new shop: ${shopRequest.name}")
         val newShopId = ShopTable.insert {
-            it[ShopTable.name] = name
-            it[ShopTable.longitude] = longitude
-            it[ShopTable.latitude] = latitude
-            it[ShopTable.address] = address
-            it[generatedByUserId] = userId
+            it[ShopTable.name] = shopRequest.name
+            it[ShopTable.longitude] = shopRequest.longitude
+            it[ShopTable.latitude] = shopRequest.latitude
+            it[ShopTable.address] = shopRequest.address
+            it[ShopTable.generatedByUserId] = userId
         }[ShopTable.id]
 
-        logger.info("Shop has been added with id $newShopId ($name)")
+        ShopTagTable.batchInsert(
+            TagTable.select { TagTable.id.inList(shopRequest.tags) }
+                .map { it[TagTable.parentTagId] ?: it[TagTable.id] }
+                .distinct()
+        ) {
+            this[ShopTagTable.shopId] = newShopId
+            this[ShopTagTable.tagId] = it
+        }
+
+        logger.info("Shop has been added with id $newShopId ${shopRequest.name}")
 
         return getShop(newShopId, userId)
     }
