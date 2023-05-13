@@ -16,16 +16,19 @@ object ShoppingListProductTable : Table("SHOPPING_LIST_PRODUCT") {
     val shoppingListId: Column<ShoppingListId> = shoppingListId("SHOPPING_LIST_ID")
     val productId: Column<ProductId> = productId("PRODUCT_ID")
     val quantity: Column<Double> = double("QUANTITY")
+    val crossedOut: Column<Boolean> = bool("CROSSED_OUT").default(false)
 
     fun toDomain(it: ResultRow): ShoppingListProductDTO = ShoppingListProductDTO(
         shoppingListId = it[shoppingListId],
         productId = it[productId],
-        quantity = it[quantity]
+        quantity = it[quantity],
+        crossedOut = it[crossedOut]
     )
 
     fun toDomainView(it: ResultRow): ShoppingListProductView =
         ShoppingListProductView(
             product = ProductTable.toDomainView(ProductTable.select { ProductTable.id eq it[productId] }.first()),
-            quantity = it[quantity]
+            quantity = it[quantity],
+            crossedOut = it[crossedOut],
         )
 }

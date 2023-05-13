@@ -44,6 +44,7 @@ object ShoppingListProductDao {
             (ShoppingListProductTable.shoppingListId eq shoppingListProduct.shoppingListId) and (ShoppingListProductTable.productId eq shoppingListProduct.productId)
         }) {
             it[quantity] = shoppingListProduct.quantity
+            it[crossedOut] = shoppingListProduct.crossedOut
         }
     }
 

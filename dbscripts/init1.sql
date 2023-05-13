@@ -74,7 +74,8 @@ create table SHOPPING_LIST (
 create table SHOPPING_LIST_PRODUCT (
     SHOPPING_LIST_ID int not null,
     PRODUCT_ID int not null,
-    QUANTITY int not null
+    QUANTITY int not null,
+    CROSSED_OUT boolean not null default false
 );
 
 alter table SHOPPING_LIST_PRODUCT add constraint SHOPPING_LIST_PRODUCT_SHOPPING_LIST_ID_FK foreign key (SHOPPING_LIST_ID) references SHOPPING_LIST(ID);
