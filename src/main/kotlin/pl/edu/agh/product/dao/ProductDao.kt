@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.batchInsert
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.select
@@ -16,8 +17,10 @@ import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.product.domain.ProductId
 import pl.edu.agh.product.domain.dto.ProductTableDTO
 import pl.edu.agh.product.domain.request.ProductFilterRequest
+import pl.edu.agh.product.domain.request.ProductRequest
 import pl.edu.agh.product.table.ProductTable
 import pl.edu.agh.product.table.ProductTagTable
+import pl.edu.agh.tag.table.TagTable
 import pl.edu.agh.utils.DBQueryResponseWithCount
 import pl.edu.agh.utils.GINUtils.selectTS
 
@@ -69,12 +72,21 @@ object ProductDao {
             .firstOrNone()
             .map { ProductTable.toDomain(it) }
 
-    fun insertNewProduct(name: String, description: String, userId: LoginUserId): Option<ProductTableDTO> {
+    fun insertNewProduct(request: ProductRequest, userId: LoginUserId): Option<ProductTableDTO> {
         val newProductId = ProductTable.insert {
-            it[ProductTable.name] = name
-            it[ProductTable.description] = description
+            it[ProductTable.name] = request.name
+            it[ProductTable.description] = request.description
             it[ProductTable.generatedByUserId] = userId
         } get ProductTable.id
+
+        ProductTagTable.batchInsert(
+            TagTable.select { TagTable.id.inList(request.tags) }
+                .map { Pair(it[TagTable.id], it[TagTable.parentTagId] ?: it[TagTable.id]) }
+        ) {
+            this[ProductTagTable.productId] = newProductId
+            this[ProductTagTable.tagId] = it.first
+            this[ProductTagTable.mainTagId] = it.second
+        }
 
         return getProduct(newProductId, userId)
     }
