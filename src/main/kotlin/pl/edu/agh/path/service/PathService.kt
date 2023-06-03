@@ -58,20 +58,20 @@ class PathServiceImpl : PathService {
         shopsByTags: Map<TagId, Set<ShopTableDTO>>,
         tagsByShops: Map<ShopTableDTO, Set<TagId>>,
         startingPoint: Point,
-        remainingTags: MutableSet<TagId>
+        tags: MutableSet<TagId>
     ): MutableList<ShopTableDTO> {
         var path: MutableList<ShopTableDTO>
         var pointPath: MutableList<Point>
         var shops: MutableSet<ShopTableDTO> = mutableSetOf()
 
-        for (tag in remainingTags) {
+        for (tag in tags) {
             shops.addAll(shopsByTags[tag]?: emptySet())
         }
 
         //find all shops that need to be included (one of a kind)
         var necessaryShops: MutableSet<ShopTableDTO> = mutableSetOf()
         shopsByTags.entries
-            .filter { remainingTags.contains(it.key) }
+            .filter { tags.contains(it.key) }
             .filter { it.value.size == 1 }
             .forEach { necessaryShops.addAll(it.value) }
 
@@ -88,9 +88,9 @@ class PathServiceImpl : PathService {
             shops.remove(firstShop)
         }
 
-        path.forEach { shop -> remainingTags.removeIf { !(tagsByShops[shop]?: emptySet()).contains(it) } }
+        path.forEach { shop -> tags.removeIf { !(tagsByShops[shop]?: emptySet()).contains(it) } }
 
-        while (remainingTags.isNotEmpty()) {
+        while (tags.isNotEmpty()) {
             val (index, newShop) = findOptimalShop(pointPath, shops)
             val newShopTags = tagsByShops[newShop]
 
@@ -109,7 +109,7 @@ class PathServiceImpl : PathService {
                 pointPath.removeAt(it)
             }
 
-            remainingTags.removeIf { newShopTags?.contains(it)?: false }
+            tags.removeIf { newShopTags?.contains(it)?: false }
         }
 
         return path;
@@ -136,19 +136,19 @@ class PathServiceImpl : PathService {
     private fun fewestShopsPath(
         tagsByShops: Map<ShopTableDTO, Set<TagId>>,
         startingPoint: Point,
-        remainingTags: MutableSet<TagId>
+        tags: MutableSet<TagId>
     ): MutableList<ShopTableDTO> {
         val route= mutableListOf<ShopTableDTO>()
         val pointRoute = mutableListOf(startingPoint)
 
-        while (remainingTags.isNotEmpty()) {
-            val bestShops = shopsWithMostTags(tagsByShops, remainingTags)
+        while (tags.isNotEmpty()) {
+            val bestShops = shopsWithMostTags(tagsByShops, tags)
 
             if (bestShops.isNotEmpty()) {
                 val (index, shop) = findOptimalShop(pointRoute, bestShops)
                 route.add(index, shop)
                 pointRoute.add(index, Point(shop.longitude, shop.latitude))
-                remainingTags.removeIf { !(tagsByShops[shop]?: emptySet()).contains(it) }
+                tags.removeIf { !(tagsByShops[shop]?: emptySet()).contains(it) }
             } else {
                 break;
             }
