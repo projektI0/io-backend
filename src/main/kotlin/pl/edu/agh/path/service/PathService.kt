@@ -43,7 +43,7 @@ class PathServiceImpl : PathService {
         // Initialize the starting point as the current location
         var currentPoint: Point = Point(startX, startY)
 
-        var route: MutableList<ShopTableDTO>;
+        val route: MutableList<ShopTableDTO>
 
         if (pathRequest.fewestShops == true) {
             route = fewestShopsPath(tagsByShops, currentPoint, availableTags.toMutableSet())
@@ -64,9 +64,9 @@ class PathServiceImpl : PathService {
         var pointPath: MutableList<Point>
         var shops: MutableSet<ShopTableDTO> = mutableSetOf()
 
-        for (tag in tags) {
-            shops.addAll(shopsByTags[tag]?: emptySet())
-        }
+        shops = tags.flatMap { tag ->
+            shopsByTags[tag]?:emptySet()
+        }.toMutableSet()
 
         //find all shops that need to be included (one of a kind)
         var necessaryShops: MutableSet<ShopTableDTO> = mutableSetOf()
