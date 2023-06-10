@@ -18,6 +18,8 @@ import pl.edu.agh.path.route.PathRoutes.configurePathRoutes
 import pl.edu.agh.product.ProductModule.getKoinProductModule
 import pl.edu.agh.product.domain.dto.ProductTableDTO
 import pl.edu.agh.product.route.ProductRoutes.configureProductRoutes
+import pl.edu.agh.recipe.RecipeModule.getKoinRecipeModule
+import pl.edu.agh.recipe.route.RecipeRoutes.configureRecipeRoutes
 import pl.edu.agh.shop.ShopModule.getKoinShopModule
 import pl.edu.agh.shop.route.ShopRoutes.configureShopRoutes
 import pl.edu.agh.shoppingList.ShoppingListModule.getKoinShoppingListModule
@@ -60,7 +62,8 @@ fun Application.module() {
             getKoinProductModule(),
             getKoinShopModule(),
             getKoinPathModule(),
-            getKoinTagModule()
+            getKoinTagModule(),
+            getKoinRecipeModule()
         )
     }
     configureSecurity()
@@ -70,4 +73,5 @@ fun Application.module() {
     configureTagRoutes()
     configureShopRoutes()
     configurePathRoutes()
+    configureRecipeRoutes()
 }

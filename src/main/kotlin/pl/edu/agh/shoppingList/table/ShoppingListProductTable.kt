@@ -29,6 +29,6 @@ object ShoppingListProductTable : Table("SHOPPING_LIST_PRODUCT") {
         ShoppingListProductView(
             product = ProductTable.toDomainView(ProductTable.select { ProductTable.id eq it[productId] }.first()),
             quantity = it[quantity],
-            crossedOut = it[crossedOut],
+            crossedOut = it[crossedOut]
         )
 }
