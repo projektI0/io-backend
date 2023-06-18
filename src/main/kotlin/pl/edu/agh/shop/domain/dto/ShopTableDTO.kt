@@ -9,5 +9,6 @@ data class ShopTableDTO(
     val name: String,
     val longitude: Double,
     val latitude: Double,
-    val address: String
+    val address: String,
+    val user: Boolean
 )

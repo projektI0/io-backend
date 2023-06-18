@@ -35,7 +35,7 @@ object ShopDao {
                 userIdCondition(userId)
             }
             .limit(limit, offset = offset)
-            .map { ShopTable.toDomain(it) }
+            .map { ShopTable.toDomain(it, userId) }
 
     suspend fun getAllShopsWithinBounds(
         lowerLeftLat: Double,
@@ -50,18 +50,11 @@ object ShopDao {
                 .map { it[BlacklistShopTable.shopId] }
             ShopTable.select {
                 userIdCondition(userId) and
-                    ShopTable.latitude.between(lowerLeftLat, upperRightLat) and
-                    ShopTable.longitude.between(lowerLeftLng, upperRightLng)
+                        ShopTable.latitude.between(lowerLeftLat, upperRightLat) and
+                        ShopTable.longitude.between(lowerLeftLng, upperRightLng)
             }
                 .map {
-                    ShopMapDTO(
-                        it[ShopTable.id],
-                        it[ShopTable.name],
-                        it[ShopTable.longitude],
-                        it[ShopTable.latitude],
-                        it[ShopTable.address],
-                        blacklistedShopIds.contains(it[ShopTable.id])
-                    )
+                    ShopTable.toMapDomain(it, userId, blacklistedShopIds.contains(it[ShopTable.id]))
                 }
         }
 
@@ -71,7 +64,7 @@ object ShopDao {
                 userIdCondition(userId) and (ShopTable.id eq id)
             }
             .firstOrNone()
-            .map { ShopTable.toDomain(it) }
+            .map { ShopTable.toDomain(it, userId) }
 
     fun insertNewShop(
         shopRequest: ShopRequest,
