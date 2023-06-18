@@ -1,12 +1,18 @@
 package pl.edu.agh.path.dao
 
 import org.jetbrains.exposed.sql.JoinType
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.select
+import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.product.table.ProductTagTable
 import pl.edu.agh.shop.domain.ShopId
 import pl.edu.agh.shop.domain.dto.ShopTableDTO
+import pl.edu.agh.shop.table.BlacklistShopTable
 import pl.edu.agh.shop.table.ShopTable
 import pl.edu.agh.shop.table.ShopTagTable
 import pl.edu.agh.shoppingList.domain.ShoppingListId
@@ -44,4 +50,27 @@ object PathDao {
                 .map { it[ProductTagTable.mainTagId] }.toMutableSet()
         }
     }
+
+    private fun userIdCondition(userId: LoginUserId): Op<Boolean> =
+        ShopTable.generatedByUserId.isNull() or (ShopTable.generatedByUserId eq userId)
+
+    suspend fun getAllPossibleShopsWithinBounds(
+        lowerLeftLat: Double,
+        lowerLeftLng: Double,
+        upperRightLat: Double,
+        upperRightLng: Double,
+        userId: LoginUserId
+    ): List<ShopTableDTO> =
+        Transactor.dbQuery {
+            val blacklistedShopIds = BlacklistShopTable
+                .select { BlacklistShopTable.userId eq userId }
+                .map { it[BlacklistShopTable.shopId] }
+            ShopTable.select {
+                userIdCondition(userId) and
+                    ShopTable.latitude.between(lowerLeftLat, upperRightLat) and
+                    ShopTable.longitude.between(lowerLeftLng, upperRightLng) and
+                    ShopTable.id.notInList(blacklistedShopIds)
+            }
+                .map { ShopTable.toDomain(it) }
+        }
 }
