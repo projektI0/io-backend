@@ -21,19 +21,19 @@ import pl.edu.agh.tag.domain.TagId
 import pl.edu.agh.utils.Transactor
 
 object PathDao {
-    fun getTagsForShops(shops: Set<ShopId>): Map<ShopTableDTO, Set<TagId>> =
+    fun getTagsForShops(shops: Set<ShopId>, userId: LoginUserId): Map<ShopTableDTO, Set<TagId>> =
         ShopTagTable
             .join(ShopTable, JoinType.INNER, ShopTagTable.shopId, ShopTable.id)
             .select(ShopTagTable.shopId.inList(shops))
-            .map { ShopTable.toDomain(it) to it[ShopTagTable.tagId] }
+            .map { ShopTable.toDomain(it, userId) to it[ShopTagTable.tagId] }
             .groupBy({ it.first }, { it.second })
             .mapValues { it.value.toSet() }
 
-    fun getShopsForTags(shops: Set<ShopId>, tags: Set<TagId>): Map<TagId, Set<ShopTableDTO>> =
+    fun getShopsForTags(shops: Set<ShopId>, tags: Set<TagId>, userId: LoginUserId): Map<TagId, Set<ShopTableDTO>> =
         ShopTagTable
             .join(ShopTable, JoinType.INNER, ShopTagTable.shopId, ShopTable.id)
             .select(ShopTagTable.tagId.inList(tags) and ShopTagTable.shopId.inList(shops))
-            .map { it[ShopTagTable.tagId] to ShopTable.toDomain(it) }
+            .map { it[ShopTagTable.tagId] to ShopTable.toDomain(it, userId) }
             .groupBy({ it.first }, { it.second })
             .mapValues { it.value.toSet() }
 
@@ -67,10 +67,10 @@ object PathDao {
                 .map { it[BlacklistShopTable.shopId] }
             ShopTable.select {
                 userIdCondition(userId) and
-                    ShopTable.latitude.between(lowerLeftLat, upperRightLat) and
-                    ShopTable.longitude.between(lowerLeftLng, upperRightLng) and
-                    ShopTable.id.notInList(blacklistedShopIds)
+                        ShopTable.latitude.between(lowerLeftLat, upperRightLat) and
+                        ShopTable.longitude.between(lowerLeftLng, upperRightLng) and
+                        ShopTable.id.notInList(blacklistedShopIds)
             }
-                .map { ShopTable.toDomain(it) }
+                .map { ShopTable.toDomain(it, userId) }
         }
 }

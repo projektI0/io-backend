@@ -10,5 +10,6 @@ data class ShopMapDTO(
     val longitude: Double,
     val latitude: Double,
     val address: String,
+    val user: Boolean,
     val blacklist: Boolean
 )

@@ -35,10 +35,10 @@ class PathServiceImpl : PathService {
         val allTags: MutableSet<TagId> = PathDao.getAllTopTagsForList(shoppingListId)
 
         // Create a map of the shops by tags
-        val shopsByTags: Map<TagId, Set<ShopTableDTO>> = PathDao.getShopsForTags(shopsIds, allTags)
+        val shopsByTags: Map<TagId, Set<ShopTableDTO>> = PathDao.getShopsForTags(shopsIds, allTags, userId)
 
         // Create a map of the tags by shops
-        val tagsByShops: Map<ShopTableDTO, Set<TagId>> = PathDao.getTagsForShops(shopsIds)
+        val tagsByShops: Map<ShopTableDTO, Set<TagId>> = PathDao.getTagsForShops(shopsIds, userId)
 
         val (availableTags, remainingTags) = allTags.partition { shopsByTags.containsKey(it) }
 
@@ -52,7 +52,8 @@ class PathServiceImpl : PathService {
         }
 
         return PathResponse(
-            route.stream().map { ShopMapDTO(it.id, it.name, it.longitude, it.latitude, it.address, false) }.toList(),
+            route.stream().map { ShopMapDTO(it.id, it.name, it.longitude, it.latitude, it.address, it.user, false) }
+                .toList(),
             remainingTags.toSet()
         )
     }
@@ -89,29 +90,33 @@ class PathServiceImpl : PathService {
             shops.remove(firstShop)
         }
 
-        path.forEach { shop -> tags.removeIf { !(tagsByShops[shop] ?: emptySet()).contains(it) } }
+        path.forEach { shop -> tags.removeIf { (tagsByShops[shop] ?: emptySet()).contains(it) } }
 
         while (tags.isNotEmpty()) {
             val (index, newShop) = findOptimalShop(pointPath, shops)
             val newShopTags = tagsByShops[newShop]
+            if (newShopTags!!.intersect(tags).isEmpty()) {
+                shops.remove(newShop)
+            } else {
+                path.add(index - 1, newShop)
+                pointPath.add(index, Point(newShop.longitude, newShop.latitude))
 
-            path.add(index, newShop)
-            pointPath.add(index, Point(newShop.longitude, newShop.latitude))
-
-            // remove all doubles (new shop contains tags added to path earlier)
-            val removeShopsAtIndex = mutableListOf<Int>()
-            path.withIndex().forEach {
-                if (newShopTags?.containsAll(tagsByShops[it.value] ?: emptySet()) == true && it.value != newShop) {
-                    removeShopsAtIndex.add(it.index)
+                // remove all doubles (new shop contains tags added to path earlier)
+                val removeShopsAtIndex = mutableListOf<Int>()
+                path.withIndex().forEach {
+                    if (newShopTags.containsAll(tagsByShops[it.value] ?: emptySet()) && it.value != newShop) {
+                        removeShopsAtIndex.add(it.index)
+                    }
                 }
-            }
 
-            removeShopsAtIndex.asReversed().forEach {
-                path.removeAt(it)
-                pointPath.removeAt(it)
-            }
+                removeShopsAtIndex.asReversed().forEach {
+                    path.removeAt(it - 1)
+                    pointPath.removeAt(it)
+                }
 
-            tags.removeIf { newShopTags?.contains(it) ?: false }
+                tags.removeIf { newShopTags.contains(it) }
+                shops.remove(newShop)
+            }
         }
 
         return path
@@ -130,7 +135,7 @@ class PathServiceImpl : PathService {
 
         while (shops.isNotEmpty()) {
             val (index, shop) = findOptimalShop(pointPath, shops)
-            path.add(index, shop)
+            path.add(index - 1, shop)
             pointPath.add(index, Point(shop.longitude, shop.latitude))
             shops.remove(shop)
         }
@@ -151,9 +156,9 @@ class PathServiceImpl : PathService {
 
             if (bestShops.isNotEmpty()) {
                 val (index, shop) = findOptimalShop(pointRoute, bestShops)
-                route.add(index, shop)
+                route.add(index - 1, shop)
                 pointRoute.add(index, Point(shop.longitude, shop.latitude))
-                tags.removeIf { !(tagsByShops[shop] ?: emptySet()).contains(it) }
+                tags.removeIf { (tagsByShops[shop] ?: emptySet()).contains(it) }
             } else {
                 break
             }
@@ -185,7 +190,7 @@ class PathServiceImpl : PathService {
             }
         }
 
-        return Pair(indexToInsert, bestShop)
+        return indexToInsert to bestShop
     }
 
     private fun shopClosestToPoint(point: Point, shops: Set<ShopTableDTO>): ShopTableDTO {
@@ -197,7 +202,7 @@ class PathServiceImpl : PathService {
     }
 
     private fun shopsWithMostTags(tagsByShops: Map<ShopTableDTO, Set<TagId>>, remainingTags: MutableSet<TagId>):
-        MutableSet<ShopTableDTO> {
+            MutableSet<ShopTableDTO> {
         var maxTags = 0
         var maxTagsShops = mutableSetOf<ShopTableDTO>()
 
