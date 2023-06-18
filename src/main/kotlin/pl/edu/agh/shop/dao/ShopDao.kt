@@ -7,13 +7,16 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.isNull
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.batchInsert
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.select
 import pl.edu.agh.auth.domain.LoginUserId
 import pl.edu.agh.shop.domain.ShopId
+import pl.edu.agh.shop.domain.dto.ShopMapDTO
 import pl.edu.agh.shop.domain.dto.ShopTableDTO
 import pl.edu.agh.shop.domain.request.ShopRequest
+import pl.edu.agh.shop.table.BlacklistShopTable
 import pl.edu.agh.shop.table.ShopTable
 import pl.edu.agh.shop.table.ShopTagTable
 import pl.edu.agh.tag.table.TagTable
@@ -40,15 +43,26 @@ object ShopDao {
         upperRightLat: Double,
         upperRightLng: Double,
         userId: LoginUserId
-    ): List<ShopTableDTO> =
+    ): List<ShopMapDTO> =
         Transactor.dbQuery {
-            ShopTable
-                .select {
-                    userIdCondition(userId) and
-                        ShopTable.latitude.between(lowerLeftLat, upperRightLat) and
-                        ShopTable.longitude.between(lowerLeftLng, upperRightLng)
+            val blacklistedShopIds = BlacklistShopTable
+                .select { BlacklistShopTable.userId eq userId }
+                .map { it[BlacklistShopTable.shopId] }
+            ShopTable.select {
+                userIdCondition(userId) and
+                    ShopTable.latitude.between(lowerLeftLat, upperRightLat) and
+                    ShopTable.longitude.between(lowerLeftLng, upperRightLng)
+            }
+                .map {
+                    ShopMapDTO(
+                        it[ShopTable.id],
+                        it[ShopTable.name],
+                        it[ShopTable.longitude],
+                        it[ShopTable.latitude],
+                        it[ShopTable.address],
+                        blacklistedShopIds.contains(it[ShopTable.id])
+                    )
                 }
-                .map { ShopTable.toDomain(it) }
         }
 
     fun getShop(id: ShopId, userId: LoginUserId): Option<ShopTableDTO> =
@@ -84,5 +98,24 @@ object ShopDao {
         logger.info("Shop has been added with id $newShopId ${shopRequest.name}")
 
         return getShop(newShopId, userId)
+    }
+
+    fun secureGetShopFromBlacklist(shopId: ShopId, userId: LoginUserId): Option<Pair<ShopId, LoginUserId>> =
+        BlacklistShopTable.select {
+            (BlacklistShopTable.userId eq userId) and (BlacklistShopTable.shopId eq shopId)
+        }.firstOrNone()
+            .map { it[BlacklistShopTable.shopId] to it[BlacklistShopTable.userId] }
+
+    fun addShopToUserBlacklist(shopId: ShopId, userId: LoginUserId) {
+        BlacklistShopTable.insert {
+            it[BlacklistShopTable.shopId] = shopId
+            it[BlacklistShopTable.userId] = userId
+        }
+    }
+
+    fun removeShopFromUserBlacklist(shopId: ShopId, userId: LoginUserId) {
+        BlacklistShopTable.deleteWhere {
+            (BlacklistShopTable.userId eq userId) and (BlacklistShopTable.shopId eq shopId)
+        }
     }
 }

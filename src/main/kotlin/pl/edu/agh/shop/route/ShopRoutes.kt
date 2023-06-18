@@ -5,6 +5,7 @@ import arrow.core.right
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -14,6 +15,7 @@ import pl.edu.agh.auth.domain.Roles
 import pl.edu.agh.auth.service.authenticate
 import pl.edu.agh.auth.service.getLoggedUser
 import pl.edu.agh.shop.domain.ShopId
+import pl.edu.agh.shop.domain.dto.ShopMapDTO
 import pl.edu.agh.shop.domain.dto.ShopTableDTO
 import pl.edu.agh.shop.domain.request.ShopRequest
 import pl.edu.agh.shop.domain.request.ShopsBoundsRequest
@@ -43,7 +45,7 @@ object ShopRoutes {
                                 val (_, _, userId) = getLoggedUser(call)
 
                                 shopService.getAllShopsWithinBounds(shopsBoundsRequest, userId).right().bind()
-                            }.responsePair(ShopTableDTO.serializer())
+                            }.responsePair(ShopMapDTO.serializer())
                         }
                     }
                     get("/{id}") {
@@ -81,6 +83,30 @@ object ShopRoutes {
                                     .toResponsePairLogging()
                                     .bind()
                             }.responsePair(ShopTableDTO.serializer())
+                        }
+                    }
+                    post("blacklist") {
+                        logger.info("adding shop to blacklist")
+                        Utils.handleOutput(call) {
+                            either {
+                                val shopId = Utils.getBody<ShopId>(call).bind()
+                                val (_, _, userId) = getLoggedUser(call)
+
+                                shopService
+                                    .addShopToUserBlacklist(shopId, userId).toResponsePairLogging().bind()
+                            }.responsePair()
+                        }
+                    }
+                    delete("blacklist") {
+                        logger.info("deleting shop from blacklist")
+                        Utils.handleOutput(call) {
+                            either {
+                                val shopId = Utils.getBody<ShopId>(call).bind()
+                                val (_, _, userId) = getLoggedUser(call)
+
+                                shopService
+                                    .removeShopFromUserBlacklist(shopId, userId).toResponsePairLogging().bind()
+                            }.responsePair()
                         }
                     }
                 }
